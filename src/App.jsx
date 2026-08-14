@@ -388,7 +388,7 @@ function TrajectorySection() {
       <div className="container trajectory-intro">
         <div className="section-heading section-heading--wide">
           <p className="section-index">Antes de tudo, você precisa me conhecer melhor...</p>
-          <h2>Eu não cheguei até a IA por uma ferramenta. <span className="mesh-text">Cheguei por anos transformando ideias em trabalho real.</span></h2>
+          <h2><span className="mesh-text">Foram anos transformando ideias em trabalho real.</span></h2>
         </div>
         <div className="trajectory-intro__text prose">
           <p>Eu sou Mateus Paz, especialista em IA. Minha trajetória começou no Nordeste, passou por design, audiovisual, lançamentos, marketing, desenvolvimento de software e construção de empresas.</p>
