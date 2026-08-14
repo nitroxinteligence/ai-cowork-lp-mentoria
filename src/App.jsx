@@ -18,8 +18,51 @@ import {
   Zap,
 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import {
+  flushLeadDraft,
+  getOrCreateLeadDraft,
+  persistLeadDraft,
+  startLeadDraftSync,
+  submitLeadApplication,
+  subscribeToLeadDraftSync,
+} from './lib/leadApplicationDraft';
 
 const HERO_VIDEO_ENABLED = false;
+const THANK_YOU_PATH = '/parabens';
+const THANK_YOU_ACCESS_KEY = 'ai-cowork:thank-you-access:v1';
+const WHATSAPP_MESSAGE = 'Olá! Preenchi minha candidatura para a primeira turma do AI COWORK e gostaria de receber mais informações sobre os próximos passos.';
+const WHATSAPP_URL = `https://wa.me/5581982986181?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+
+function normalizePathname(pathname) {
+  return pathname.replace(/\/+$/, '') || '/';
+}
+
+function hasThankYouAccess() {
+  try {
+    const access = JSON.parse(window.sessionStorage.getItem(THANK_YOU_ACCESS_KEY));
+    return Boolean(access?.applicationId && access?.submittedAt);
+  } catch {
+    return false;
+  }
+}
+
+function grantThankYouAccess(applicationId) {
+  window.sessionStorage.setItem(THANK_YOU_ACCESS_KEY, JSON.stringify({
+    applicationId,
+    submittedAt: new Date().toISOString(),
+  }));
+}
+
+function resolvePathname() {
+  const requestedPathname = normalizePathname(window.location.pathname);
+
+  if (requestedPathname === THANK_YOU_PATH && !hasThankYouAccess()) {
+    window.history.replaceState({}, '', '/');
+    return '/';
+  }
+
+  return requestedPathname;
+}
 
 const sessions = [
   {
@@ -213,8 +256,22 @@ function formatBrazilianPhone(value) {
 
 function App() {
   const [applicationOpen, setApplicationOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
+  const [pathname, setPathname] = useState(resolvePathname);
+
+  useEffect(() => startLeadDraftSync(), []);
+
+  useEffect(() => {
+    const handlePopState = () => setPathname(resolvePathname());
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const preventContextMenu = (event) => event.preventDefault();
+    document.addEventListener('contextmenu', preventContextMenu);
+    return () => document.removeEventListener('contextmenu', preventContextMenu);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -248,9 +305,18 @@ function App() {
   }, []);
 
   const openApplication = () => {
-    setSubmitted(false);
     setApplicationOpen(true);
   };
+
+  const showThankYouPage = (applicationId) => {
+    grantThankYouAccess(applicationId);
+    window.history.pushState({}, '', THANK_YOU_PATH);
+    setApplicationOpen(false);
+    setPathname(THANK_YOU_PATH);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  if (pathname === THANK_YOU_PATH) return <ThankYouPage />;
 
   return (
     <div className="site-shell">
@@ -270,8 +336,7 @@ function App() {
       <AnimatePresence>
         {applicationOpen && (
           <ApplicationModal
-            submitted={submitted}
-            onSubmitted={() => setSubmitted(true)}
+            onSubmitted={showThankYouPage}
             onClose={() => setApplicationOpen(false)}
           />
         )}
@@ -799,10 +864,17 @@ function Footer() {
   );
 }
 
-function ApplicationModal({ onClose, onSubmitted, submitted }) {
-  const [step, setStep] = useState(0);
-  const [values, setValues] = useState({});
+function ApplicationModal({ onClose, onSubmitted }) {
+  const initialDraftRef = useRef(null);
+  if (!initialDraftRef.current) initialDraftRef.current = getOrCreateLeadDraft();
+
+  const draftRef = useRef(initialDraftRef.current.draft);
+  const [step, setStep] = useState(initialDraftRef.current.draft.currentStep);
+  const [values, setValues] = useState(initialDraftRef.current.draft.values);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [syncState, setSyncState] = useState({ status: 'idle' });
   const dialogRef = useRef(null);
   const reduceMotion = useReducedMotion();
   const current = steps[step];
@@ -811,9 +883,24 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
     dialogRef.current?.focus();
   }, []);
 
+  useEffect(() => subscribeToLeadDraftSync(setSyncState), []);
+
+  const saveDraft = (nextValues, nextStep = step) => {
+    const nextDraft = {
+      ...draftRef.current,
+      currentStep: nextStep,
+      values: nextValues,
+    };
+    draftRef.current = persistLeadDraft(nextDraft);
+    return nextDraft;
+  };
+
   const update = (name, value) => {
-    setValues((previous) => ({ ...previous, [name]: value }));
+    const nextValues = { ...draftRef.current.values, [name]: value };
+    setValues(nextValues);
+    saveDraft(nextValues);
     setErrors((previous) => ({ ...previous, [name]: undefined }));
+    setSubmitError('');
   };
 
   const validate = () => {
@@ -829,14 +916,46 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
     event.preventDefault();
     if (!validate()) return;
     setErrors({});
-    setStep((currentStep) => Math.min(currentStep + 1, steps.length - 1));
+    const nextStep = Math.min(step + 1, steps.length - 1);
+    setStep(nextStep);
+    const draft = saveDraft(draftRef.current.values, nextStep);
+    void flushLeadDraft(draft).catch(() => undefined);
   };
 
-  const submit = (event) => {
+  const previous = () => {
+    const previousStep = Math.max(step - 1, 0);
+    setStep(previousStep);
+    const draft = saveDraft(draftRef.current.values, previousStep);
+    void flushLeadDraft(draft).catch(() => undefined);
+  };
+
+  const submit = async (event) => {
     event.preventDefault();
     if (!validate()) return;
-    onSubmitted(values);
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const draft = saveDraft(draftRef.current.values, step);
+      await submitLeadApplication(draft);
+      onSubmitted(draft.id);
+    } catch (error) {
+      setSubmitError(error.message || 'Não foi possível enviar a candidatura. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const syncMessage = {
+    error: 'Salvo neste dispositivo; sincronização pendente.',
+    idle: initialDraftRef.current.restored
+      ? 'Rascunho recuperado neste dispositivo.'
+      : 'Seu progresso será salvo automaticamente.',
+    offline: 'Sem internet — progresso salvo neste dispositivo.',
+    saved: 'Progresso salvo.',
+    submitting: 'Enviando candidatura...',
+    syncing: 'Salvando...',
+  }[syncState.status] || 'Seu progresso será salvo automaticamente.';
 
   return (
     <motion.div
@@ -862,16 +981,17 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
           <X size={21} />
         </button>
 
-        {submitted ? (
-          <ThankYou onClose={onClose} />
-        ) : (
-          <form className="application-form" onSubmit={submit} noValidate>
+        <form className="application-form" onSubmit={submit} noValidate>
               <div className="form-progress" aria-label={`Etapa ${step + 1} de ${steps.length}`}>
                 <div className="form-progress__meta">
                   <span>Etapa {step + 1} de {steps.length}</span>
                   <strong>{current.label}</strong>
                 </div>
                 <div className="form-progress__track"><i style={{ width: `${((step + 1) / steps.length) * 100}%` }} /></div>
+                <p className={`form-sync-status form-sync-status--${syncState.status}`} aria-live="polite">
+                  <span aria-hidden="true" />
+                  {syncMessage}
+                </p>
               </div>
 
               <AnimatePresence mode="wait" initial={false}>
@@ -889,6 +1009,7 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
                       field={field}
                       key={field.name}
                       onChange={(value) => update(field.name, value)}
+                      onCommit={() => void flushLeadDraft(draftRef.current).catch(() => undefined)}
                       value={values[field.name] ?? ''}
                     />
                   ))}
@@ -897,7 +1018,7 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
 
               <div className="form-actions">
                 {step > 0 ? (
-                  <button className="form-back" onClick={() => setStep((currentStep) => currentStep - 1)} type="button">
+                  <button className="form-back" onClick={previous} type="button">
                     <ArrowLeft size={17} /> Voltar
                   </button>
                 ) : <span />}
@@ -906,19 +1027,23 @@ function ApplicationModal({ onClose, onSubmitted, submitted }) {
                     Continuar <ArrowRight size={17} />
                   </button>
                 ) : (
-                  <button className="form-next" type="submit">
-                    Aplicar para uma das 15 vagas <ArrowRight size={17} />
+                  <button className="form-next" type="submit" disabled={submitting}>
+                    {submitting ? 'Enviando...' : 'Aplicar para uma das 15 vagas'} <ArrowRight size={17} />
                   </button>
                 )}
               </div>
-          </form>
-        )}
+              {submitError && (
+                <p className="form-submit-error" role="alert">
+                  {submitError}
+                </p>
+              )}
+        </form>
       </motion.div>
     </motion.div>
   );
 }
 
-function FormField({ field, value, onChange, error }) {
+function FormField({ field, value, onChange, onCommit, error }) {
   const inputId = `field-${field.name}`;
   const errorId = `${inputId}-error`;
   const handleChange = (event) => {
@@ -935,7 +1060,16 @@ function FormField({ field, value, onChange, error }) {
         <div className="option-list">
           {field.options.map((option) => (
             <label className={value === option ? 'option option--selected' : 'option'} key={option}>
-              <input type="radio" name={field.name} value={option} checked={value === option} onChange={() => onChange(option)} />
+              <input
+                type="radio"
+                name={field.name}
+                value={option}
+                checked={value === option}
+                onChange={() => {
+                  onChange(option);
+                  window.setTimeout(onCommit, 0);
+                }}
+              />
               <span className="option__circle"><Check size={12} /></span>
               <span>{option}</span>
             </label>
@@ -950,27 +1084,46 @@ function FormField({ field, value, onChange, error }) {
     <div className={`field${error ? ' field--error' : ''}`}>
       <label htmlFor={inputId}>{field.label}</label>
       {field.type === 'textarea' ? (
-        <textarea id={inputId} value={value} placeholder={field.placeholder} onChange={handleChange} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} rows={4} />
+        <textarea id={inputId} value={value} placeholder={field.placeholder} onChange={handleChange} onBlur={onCommit} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} rows={4} />
       ) : (
-        <input id={inputId} type={field.type} value={value} autoComplete={field.autoComplete} inputMode={field.inputMode} maxLength={field.maxLength} placeholder={field.placeholder} onChange={handleChange} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} />
+        <input id={inputId} type={field.type} value={value} autoComplete={field.autoComplete} inputMode={field.inputMode} maxLength={field.maxLength} placeholder={field.placeholder} onChange={handleChange} onBlur={onCommit} aria-invalid={Boolean(error)} aria-describedby={error ? errorId : undefined} />
       )}
       {error && <span className="field-error" id={errorId}>{error}</span>}
     </div>
   );
 }
 
-function ThankYou({ onClose }) {
+function ThankYouPage() {
   return (
-    <div className="thank-you">
-      <div className="thank-you__icon"><Check size={28} /></div>
-      <p>Candidatura registrada nesta demonstração</p>
-      <h2>Recebi sua candidatura para o AI COWORK.</h2>
-      <p>Minha equipe vai analisar suas respostas e, caso exista aderência com a proposta da primeira turma, entraremos em contato pelo WhatsApp ou pelo e-mail informado.</p>
-      <p>A candidatura não garante a vaga. A entrada depende da aderência ao programa, da disponibilidade para participar e das 15 vagas da turma.</p>
-      <strong>Fique atento às mensagens nos próximos dias.</strong>
-      <button type="button" onClick={onClose}>Voltar para a página</button>
-      <small>O envio está em modo de demonstração até a integração do destino final do formulário.</small>
-    </div>
+    <main className="thank-you-page">
+      <section className="thank-you-page__content" aria-labelledby="thank-you-title">
+        <h1 className="mesh-text mesh-text--on-dark" id="thank-you-title">
+          Parabéns por tomar essa decisão extremamente importante na sua carreira pessoal e profissional.
+        </h1>
+        <div className="thank-you-page__copy">
+          <p>Minha equipe vai analisar suas respostas e, caso exista aderência com a proposta da primeira turma, entraremos em contato pelo WhatsApp ou pelo e-mail informado.</p>
+          <p>A candidatura não garante uma vaga. A entrada depende da aderência ao programa, da disponibilidade para participar e das 15 vagas da turma.</p>
+          <strong>Fique atento às mensagens nos próximos dias.</strong>
+        </div>
+        <a className="thank-you-page__cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
+          <WhatsAppIcon />
+          Falar com a equipe no WhatsApp
+        </a>
+      </section>
+    </main>
+  );
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg className="thank-you-page__whatsapp-icon" viewBox="0 0 360 362" aria-hidden="true">
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M307.546 52.5655C273.709 18.685 228.706 0.017 180.756 0C81.951 0 1.538 80.404 1.504 179.235C1.487 210.829 9.746 241.667 25.432 268.844L0 361.736L95.024 336.811C121.203 351.096 150.683 358.616 180.679 358.625H180.756C279.544 358.625 359.966 278.212 360 179.381C360.017 131.483 341.392 86.455 307.546 52.574V52.566ZM180.756 328.354H180.696C153.966 328.346 127.744 321.16 104.865 307.589L99.424 304.358L43.034 319.149L58.083 264.168L54.542 258.53C39.63 234.809 31.749 207.391 31.766 179.244C31.801 97.104 98.633 30.271 180.817 30.271C220.61 30.288 258.015 45.802 286.145 73.967C314.276 102.123 329.755 139.562 329.738 179.364C329.703 261.513 262.871 328.346 180.756 328.346V328.354ZM262.475 216.777C257.997 214.534 235.978 203.704 231.869 202.209C227.761 200.713 224.779 199.966 221.796 204.452C218.814 208.939 210.228 219.029 207.615 222.011C205.002 225.002 202.389 225.372 197.911 223.128C193.434 220.885 179.003 216.158 161.891 200.902C148.578 189.024 139.587 174.362 136.975 169.875C134.362 165.389 136.7 162.965 138.934 160.739C140.945 158.728 143.412 155.505 145.655 152.892C147.899 150.279 148.638 148.406 150.133 145.423C151.629 142.432 150.881 139.82 149.764 137.576C148.646 135.333 139.691 113.287 135.952 104.323C132.316 95.591 128.621 96.777 125.879 96.631C123.266 96.502 120.284 96.476 117.293 96.476C114.302 96.476 109.454 97.594 105.346 102.08C101.238 106.566 89.669 117.404 89.669 139.441C89.669 161.478 105.716 182.785 107.959 185.776C110.202 188.767 139.544 234.001 184.469 253.408C195.153 258.023 203.498 260.782 210.004 262.845C220.731 266.257 230.494 265.776 238.212 264.624C246.816 263.335 264.71 253.786 268.44 243.326C272.17 232.866 272.17 223.893 271.053 222.028C269.936 220.163 266.945 219.037 262.467 216.794L262.475 216.777Z"
+      />
+    </svg>
   );
 }
 
