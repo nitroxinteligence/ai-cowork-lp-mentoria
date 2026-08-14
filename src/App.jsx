@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
+const HERO_VIDEO_ENABLED = false;
+
 const sessions = [
   {
     code: 'S1',
@@ -362,11 +364,13 @@ function Hero({ onApply }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="video-placeholder" id="video">
-            <button className="play-button" type="button" aria-label="Vídeo de apresentação ainda será inserido">
-              <Play size={24} fill="currentColor" />
-            </button>
-          </div>
+          {HERO_VIDEO_ENABLED && (
+            <div className="video-placeholder" id="video">
+              <button className="play-button" type="button" aria-label="Vídeo de apresentação ainda será inserido">
+                <Play size={24} fill="currentColor" />
+              </button>
+            </div>
+          )}
           <div className="hero__facts" aria-label="Informações da primeira turma">
             <span><Clock3 size={17} /> 6 encontros em 2 meses</span>
             <span><Users size={17} /> 15 vagas</span>
@@ -711,7 +715,6 @@ function AboutSection() {
           <p className="section-index">Quem conduz</p>
           <h2>Eu criei o <span className="mesh-text">AI COWORK</span> porque usar IA como uma caixa de respostas já ficou pequeno demais.</h2>
           <div className="prose prose--about">
-            <p>Eu sou Mateus Paz, especialista em IA.</p>
             <p>No meu trabalho, eu uso IA para pesquisar, analisar dados, organizar conhecimento, criar conteúdo, construir agentes, automatizar tarefas e tirar produtos e sistemas do papel.</p>
             <p>Durante a primeira turma, eu vou abrir o meu processo, demonstrar o que já construí e explicar as decisões por trás de cada uso. Também vou mostrar onde a IA falha, quando uma automação não deveria rodar sozinha e por que o crivo humano ainda é a parte mais importante desse sistema.</p>
           </div>
