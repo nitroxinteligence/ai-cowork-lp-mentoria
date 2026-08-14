@@ -13,9 +13,11 @@
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "motion": "latest",
-    "vite": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "vite": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "wrangler": "^4.123.0"
+  }
 }
