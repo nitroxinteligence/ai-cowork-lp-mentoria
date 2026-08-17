@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   Check,
   CheckCircle2,
-  CircleDot,
   Clock3,
   PanelsTopLeft,
   Play,
@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Target,
   UserCog,
-  Users,
   Workflow,
   X,
   Zap,
@@ -256,7 +255,7 @@ function formatBrazilianPhone(value) {
 
 function App() {
   const [applicationOpen, setApplicationOpen] = useState(false);
-  const [floatingNavVisible, setFloatingNavVisible] = useState(false);
+  const [floatingCtaVisible, setFloatingCtaVisible] = useState(false);
   const [pathname, setPathname] = useState(resolvePathname);
 
   useEffect(() => startLeadDraftSync(), []);
@@ -289,19 +288,15 @@ function App() {
   }, [applicationOpen]);
 
   useEffect(() => {
-    const updateFloatingNav = () => {
-      const hero = document.getElementById('inicio');
-      if (!hero) return;
-      setFloatingNavVisible(window.scrollY >= hero.offsetHeight - 120);
-    };
+    const hero = document.getElementById('inicio');
+    if (!hero) return undefined;
 
-    updateFloatingNav();
-    window.addEventListener('scroll', updateFloatingNav, { passive: true });
-    window.addEventListener('resize', updateFloatingNav);
-    return () => {
-      window.removeEventListener('scroll', updateFloatingNav);
-      window.removeEventListener('resize', updateFloatingNav);
-    };
+    const observer = new IntersectionObserver(([entry]) => {
+      setFloatingCtaVisible(!entry.isIntersecting);
+    });
+
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, []);
 
   const openApplication = () => {
@@ -320,16 +315,16 @@ function App() {
 
   return (
     <div className="site-shell">
-      <Hero onApply={openApplication} />
+      <Hero onApply={openApplication} ctaShimmerActive={!floatingCtaVisible} />
       <AnimatePresence>
-        {floatingNavVisible && <FloatingNav onApply={openApplication} />}
+        {floatingCtaVisible && <FloatingApplicationCTA onApply={openApplication} />}
       </AnimatePresence>
       <main>
         <TrajectorySection />
-        <ChangeDetailsSection onApply={openApplication} />
-        <ExperienceSection onApply={openApplication} />
+        <ChangeDetailsSection />
+        <ExperienceSection />
         <AboutSection />
-        <ApplicationSection onApply={openApplication} />
+        <ApplicationSection />
         <FAQSection />
       </main>
       <Footer />
@@ -345,26 +340,20 @@ function App() {
   );
 }
 
-function FloatingNav({ onApply }) {
+function FloatingApplicationCTA({ onApply }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.nav
-      className="floating-nav"
-      aria-label="Navegação flutuante"
-      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -18, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12, scale: 0.98 }}
-      transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+    <motion.aside
+      className="application-cta application-cta--floating"
+      aria-label="Candidatura"
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
+      transition={{ duration: 0.22, ease: 'easeOut' }}
     >
-      <BrandLogo compact className="floating-nav__brand" href="#inicio" />
-      <div className="floating-nav__links">
-        <a href="#trajetoria">Minha trajetória</a>
-        <a href="#experiencia">A turma</a>
-        <a href="#mateus">Quem conduz</a>
-      </div>
-      <button type="button" onClick={onApply}>Candidatar-me</button>
-    </motion.nav>
+      <ApplicationCTAButton onApply={onApply} shimmerActive />
+    </motion.aside>
   );
 }
 
@@ -391,16 +380,26 @@ function BrandLogo({ compact = false, className = '', href }) {
   return <div className={classes}>{logo}</div>;
 }
 
-function CTA({ children = 'Quero me candidatar', variant = 'light', onClick }) {
+function ApplicationCTAButton({ onApply, shimmerActive = false }) {
   return (
-    <button className={`cta cta--${variant}`} onClick={onClick} type="button">
-      <span>{children}</span>
-      <ArrowRight size={18} strokeWidth={2.2} aria-hidden="true" />
+    <button
+      className={`application-cta__button${shimmerActive ? ' is-shimmer-active' : ''}`}
+      type="button"
+      onClick={onApply}
+    >
+      <span className="application-cta__action">
+        <span>GARANTIR MINHA VAGA</span>
+        <ArrowUpRight className="application-cta__hover-arrow" size={18} strokeWidth={2} aria-hidden="true" />
+      </span>
+      <span className="application-cta__details" aria-hidden="true">
+        <span>15 VAGAS PRIMEIRA TURMA</span>
+        <span>ABERTO ATÉ 30 DE AGOSTO</span>
+      </span>
     </button>
   );
 }
 
-function Hero({ onApply }) {
+function Hero({ onApply, ctaShimmerActive }) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -413,35 +412,40 @@ function Hero({ onApply }) {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <BrandLogo className="hero__brand" />
-          <h1><span className="mesh-text mesh-text--on-dark">Aprenda a usar IA de verdade</span> e de forma profissional.</h1>
-          <p className="hero__lead">
-            Pare de improvisar com ChatGPT e Claude. No AI COWORK, eu vou ensinar você a dirigir especialistas digitais, automatizar trabalho manual e ampliar o que consegue pesquisar, analisar, criar e executar com IA.
-          </p>
-          <div className="hero__actions">
-            <CTA variant="mesh" onClick={onApply} />
+          <div className="hero__facts" aria-label="Informações da primeira turma">
+            <Clock3 size={17} aria-hidden="true" />
+            <span className="hero__facts-text">
+              <span>6 encontros</span>
+              <span>15 vagas</span>
+              <span>Início em setembro</span>
+            </span>
           </div>
-          <p className="hero__note">Candidaturas abertas até 30 de agosto.</p>
+          <h1>Você ainda está fazendo com as mãos o <span className="mesh-text mesh-text--on-dark">trabalho que já poderia fazer com IA.</span></h1>
+          <div className="hero__lead">
+            <p>
+              No <span className="hero__lead-brand">AI COWORK</span>, você vai <span className="hero__lead-highlight">aprender a identificar o que pode ser automatizado, criar especialistas digitais</span> para diferentes funções e <span className="hero__lead-highlight">fazer a IA trabalhar com você e para você.</span>
+            </p>
+          </div>
+          <div className="application-cta application-cta--hero">
+            <ApplicationCTAButton onApply={onApply} shimmerActive={ctaShimmerActive} />
+          </div>
         </motion.div>
 
-        <motion.div
-          className="hero__visual"
-          initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-        >
-          {HERO_VIDEO_ENABLED && (
+        {HERO_VIDEO_ENABLED && (
+          <motion.div
+            className="hero__visual"
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.9, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          >
             <div className="video-placeholder" id="video">
               <button className="play-button" type="button" aria-label="Vídeo de apresentação ainda será inserido">
                 <Play size={24} fill="currentColor" />
               </button>
             </div>
-          )}
-          <div className="hero__facts" aria-label="Informações da primeira turma">
-            <span><Clock3 size={17} /> 6 encontros em 2 meses</span>
-            <span><Users size={17} /> 15 vagas</span>
-            <span><CircleDot size={17} /> Início em setembro</span>
-          </div>
-        </motion.div>
+          </motion.div>
+        )}
+
       </div>
     </header>
   );
@@ -450,10 +454,9 @@ function Hero({ onApply }) {
 function TrajectorySection() {
   return (
     <section className="section section--trajectory" id="trajetoria">
-      <div className="container trajectory-intro">
+      <div className="container trajectory-intro trajectory-intro--centered">
         <div className="section-heading section-heading--wide">
-          <p className="section-index">Antes de tudo, você precisa me conhecer melhor...</p>
-          <h2><span className="mesh-text">Foram anos transformando ideias em trabalho real.</span></h2>
+          <h2><span className="mesh-text mesh-text--on-dark">Foram anos transformando ideias em trabalho real.</span></h2>
         </div>
         <div className="trajectory-intro__text prose">
           <p>Eu sou Mateus Paz, especialista em IA. Minha trajetória começou no Nordeste, passou por design, audiovisual, lançamentos, marketing, desenvolvimento de software e construção de empresas.</p>
@@ -485,7 +488,7 @@ function TrajectorySection() {
   );
 }
 
-function ChangeDetailsSection({ onApply }) {
+function ChangeDetailsSection() {
   return (
     <>
       <section className="section section--change section--change-details">
@@ -494,7 +497,6 @@ function ChangeDetailsSection({ onApply }) {
             <div className="capabilities__intro">
               <h3>O que você vai <span className="mesh-text">aprender a fazer</span></h3>
               <p>A IA deixa de ser uma janela onde você faz perguntas e passa a funcionar como uma estrutura de trabalho sob sua direção.</p>
-              <CTA variant="blue" onClick={onApply}>Quero aprender a operar IA</CTA>
             </div>
             <ol className="capability-list">
               {capabilities.map(({ label, icon: Icon }) => (
@@ -684,7 +686,7 @@ function ExperienceSectionBoundary() {
   return <div className="section-divider" aria-hidden="true" />;
 }
 
-function ExperienceSection({ onApply }) {
+function ExperienceSection() {
   return (
     <>
       <section className="section section--experience" id="experiencia">
@@ -692,19 +694,18 @@ function ExperienceSection({ onApply }) {
           <h2>Ferramenta muda. <span className="mesh-text">Saber dirigir o trabalho continua valendo.</span></h2>
         </div>
       </section>
-      <CohortSection onApply={onApply} />
+      <CohortSection />
       <JourneySection />
     </>
   );
 }
 
-function CohortSection({ onApply }) {
+function CohortSection() {
   return (
     <section className="cohort-section" aria-labelledby="cohort-title">
       <div className="container cohort-section__content">
         <div className="cohort-section__heading">
           <div>
-            <p className="cohort-badge">Primeira turma · setembro de 2026</p>
             <h2 id="cohort-title">
               <span>Uma turma pequena.</span>
               <span>Seis encontros.</span>
@@ -731,7 +732,6 @@ function CohortSection({ onApply }) {
         </div>
         <div className="cohort-section__footer">
           <p>2 horas por encontro · online e ao vivo</p>
-          <CTA variant="mesh" onClick={onApply}>Quero me candidatar</CTA>
         </div>
       </div>
     </section>
@@ -777,7 +777,6 @@ function AboutSection() {
           />
         </div>
         <div className="about-copy">
-          <p className="section-index">Quem conduz</p>
           <h2>Eu criei o <span className="mesh-text">AI COWORK</span> porque usar IA como uma caixa de respostas já ficou pequeno demais.</h2>
           <div className="prose prose--about">
             <p>No meu trabalho, eu uso IA para pesquisar, analisar dados, organizar conhecimento, criar conteúdo, construir agentes, automatizar tarefas e tirar produtos e sistemas do papel.</p>
@@ -801,19 +800,17 @@ function AboutSection() {
   );
 }
 
-function ApplicationSection({ onApply }) {
+function ApplicationSection() {
   return (
     <section className="section section--application" id="candidatura">
       <div className="container application-grid">
         <div>
-          <p className="section-index">Candidatura</p>
-          <h2>O <span className="mesh-text">primeiro cohort do AI COWORK</span> terá 15 vagas.</h2>
+          <h2>A <span className="mesh-text">primeira turma</span> terá 15 vagas.</h2>
         </div>
         <div className="application-copy prose">
           <p>Escolhi uma turma pequena porque quero acompanhar de perto como cada participante está usando a IA, onde está travando e quais funções fazem mais sentido para o seu trabalho.</p>
           <p>Preencher o formulário não garante a vaga. Vamos analisar a aderência ao programa, a disponibilidade para participar e a composição da turma.</p>
           <p>Se sua candidatura fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
-          <CTA variant="blue" onClick={onApply}>Quero enviar minha candidatura</CTA>
         </div>
       </div>
     </section>
