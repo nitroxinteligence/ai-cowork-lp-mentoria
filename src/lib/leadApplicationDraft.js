@@ -1,5 +1,3 @@
-import { isSupabaseConfigured, supabase } from './supabase';
-
 const STORAGE_KEY = 'ai-cowork:lead-application:v1';
 const SAVE_DELAY_MS = 350;
 const listeners = new Set();
@@ -97,6 +95,8 @@ function toSyncError(error) {
 }
 
 async function sendDraft(draft, submit) {
+  const { isSupabaseConfigured, supabase } = await import('./supabase');
+
   if (!isSupabaseConfigured || !supabase) {
     throw new Error('A conexão com o Supabase não está configurada.');
   }

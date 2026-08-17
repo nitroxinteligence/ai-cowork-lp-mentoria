@@ -3,15 +3,21 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  BriefcaseBusiness,
+  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
+  Layers3,
+  Megaphone,
   PanelsTopLeft,
   Play,
   RefreshCcw,
+  Route,
   ShieldCheck,
   Target,
   UserCog,
+  Video,
   Workflow,
   X,
   Zap,
@@ -195,6 +201,66 @@ const capabilities = [
   { label: 'registrar aprendizados para o sistema melhorar em vez de recomeçar', icon: RefreshCcw },
 ];
 
+const personas = [
+  {
+    title: 'Empresários e empreendedores',
+    body: 'Para quem já conduz uma operação e quer reduzir dependência manual, acelerar decisões e transformar processos recorrentes em fluxos orientados por IA.',
+    icon: BriefcaseBusiness,
+  },
+  {
+    title: 'Profissionais e empreendedores do marketing digital',
+    body: 'Para quem precisa conectar pesquisa, estratégia, criação, aquisição, vendas e entrega sem continuar operando cada etapa em conversas isoladas.',
+    icon: Megaphone,
+  },
+  {
+    title: 'Profissionais em transição ou potencialização de carreira',
+    body: 'Para quem quer combinar a experiência que já possui com novas capacidades e construir uma forma mais valiosa de atuar, decidir e produzir.',
+    icon: Route,
+  },
+];
+
+const outcomes = [
+  {
+    title: 'Protocolo pessoal de direção',
+    body: 'Um padrão para definir objetivo, contexto, restrições, referências, formato e qualidade antes de delegar trabalho à IA.',
+    icon: Target,
+  },
+  {
+    title: 'Especialistas digitais adaptados à sua realidade',
+    body: 'Papéis configurados e testados para funções relevantes do seu trabalho, negócio ou rotina pessoal.',
+    icon: UserCog,
+  },
+  {
+    title: 'Fluxo coordenado de produção',
+    body: 'Uma forma de passar trabalho entre pesquisa, análise, estratégia, criação e revisão sem recomeçar em cada janela.',
+    icon: Workflow,
+  },
+  {
+    title: 'Automação ou fluxo assistido viável',
+    body: 'Uma primeira rotina para reduzir etapas manuais quando houver acesso, segurança e condição técnica, ou o desenho correto do que falta para implementar.',
+    icon: Zap,
+  },
+  {
+    title: 'Ativo funcional construído com IA',
+    body: 'Uma página, apresentação, dashboard, protótipo, calculadora, pequeno aplicativo ou outro ativo ligado ao seu objetivo.',
+    icon: PanelsTopLeft,
+  },
+  {
+    title: 'Sistema pessoal AI COWORK',
+    body: 'Especialistas, contextos, fluxos, ferramentas, critérios de revisão e um plano de expansão organizados para continuar crescendo depois da turma.',
+    icon: Layers3,
+  },
+];
+
+const sessionVisuals = [
+  '/images/journey/01-direcao-profissional-2048x1536.webp',
+  '/images/journey/02-especialistas-digitais-2048x1536.webp',
+  '/images/journey/03-time-digital-producao-2048x1536.webp',
+  '/images/journey/04-automacao-delegacao-2048x1536.webp',
+  '/images/journey/05-construcao-com-ia-2048x1536.webp',
+  '/images/journey/06-sistema-ai-cowork-2048x1536.webp',
+];
+
 const steps = [
   {
     label: 'Você',
@@ -257,6 +323,13 @@ function App() {
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [floatingCtaVisible, setFloatingCtaVisible] = useState(false);
   const [pathname, setPathname] = useState(resolvePathname);
+  const applicationTriggerRef = useRef(null);
+  const restoreApplicationFocusRef = useRef(false);
+
+  const closeApplication = () => {
+    restoreApplicationFocusRef.current = true;
+    setApplicationOpen(false);
+  };
 
   useEffect(() => startLeadDraftSync(), []);
 
@@ -274,11 +347,11 @@ function App() {
 
   useEffect(() => {
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') setApplicationOpen(false);
+      if (event.key === 'Escape' && applicationOpen) closeApplication();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [applicationOpen]);
 
   useEffect(() => {
     document.body.style.overflow = applicationOpen ? 'hidden' : '';
@@ -299,13 +372,18 @@ function App() {
     return () => observer.disconnect();
   }, []);
 
-  const openApplication = () => {
+  const openApplication = (event) => {
+    applicationTriggerRef.current = event?.currentTarget instanceof HTMLElement
+      ? event.currentTarget
+      : document.activeElement;
+    restoreApplicationFocusRef.current = false;
     setApplicationOpen(true);
   };
 
   const showThankYouPage = (applicationId) => {
     grantThankYouAccess(applicationId);
     window.history.pushState({}, '', THANK_YOU_PATH);
+    restoreApplicationFocusRef.current = false;
     setApplicationOpen(false);
     setPathname(THANK_YOU_PATH);
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -320,19 +398,26 @@ function App() {
         {floatingCtaVisible && <FloatingApplicationCTA onApply={openApplication} />}
       </AnimatePresence>
       <main>
+        <ManualProcessSection />
         <TrajectorySection />
+        <AudienceSection />
         <ChangeDetailsSection />
         <ExperienceSection />
-        <AboutSection />
         <ApplicationSection />
         <FAQSection />
       </main>
       <Footer />
-      <AnimatePresence>
+      <AnimatePresence
+        onExitComplete={() => {
+          if (!restoreApplicationFocusRef.current) return;
+          applicationTriggerRef.current?.focus();
+          restoreApplicationFocusRef.current = false;
+        }}
+      >
         {applicationOpen && (
           <ApplicationModal
             onSubmitted={showThankYouPage}
-            onClose={() => setApplicationOpen(false)}
+            onClose={closeApplication}
           />
         )}
       </AnimatePresence>
@@ -404,6 +489,34 @@ function Hero({ onApply, ctaShimmerActive }) {
 
   return (
     <header className="hero" id="inicio">
+      <picture className="hero__media" aria-hidden="true">
+        <source
+          media="(max-width: 480px)"
+          srcSet="/images/hero/ai-cowork-hero-mobile-1080x1920.webp"
+        />
+        <source
+          media="(max-width: 1020px)"
+          srcSet="/images/hero/ai-cowork-hero-tablet-1536x2048.webp"
+        />
+        <source
+          media="(max-width: 1440px)"
+          srcSet="/images/hero/ai-cowork-hero-laptop-1440x900.webp"
+        />
+        <source
+          media="(max-width: 1920px)"
+          srcSet="/images/hero/ai-cowork-hero-desktop-1920x1080.webp"
+        />
+        <img
+          src="/images/hero/ai-cowork-hero-ultrawide-2560x1080.webp"
+          alt=""
+          width="2560"
+          height="1080"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div className="hero__media-scrim" aria-hidden="true" />
       <div className="hero__content container">
         <motion.div
           className="hero__copy"
@@ -415,9 +528,8 @@ function Hero({ onApply, ctaShimmerActive }) {
           <div className="hero__facts" aria-label="Informações da primeira turma">
             <Clock3 size={17} aria-hidden="true" />
             <span className="hero__facts-text">
-              <span>6 encontros</span>
-              <span>15 vagas</span>
-              <span>Início em setembro</span>
+              <span>6 ENCONTROS</span>
+              <span>15 VAGAS EXCLUSIVAS</span>
             </span>
           </div>
           <h1>Você ainda está fazendo com as mãos o <span className="mesh-text mesh-text--on-dark">trabalho que já poderia fazer com IA.</span></h1>
@@ -451,15 +563,47 @@ function Hero({ onApply, ctaShimmerActive }) {
   );
 }
 
+function ManualProcessSection() {
+  return (
+    <section className="manual-process-section" aria-labelledby="manual-process-title">
+      <picture className="manual-process-section__media" aria-hidden="true">
+        <source media="(max-width: 480px)" srcSet="/images/ai-cowork-manual-process-mobile-1080x1920.webp" />
+        <source media="(max-width: 1020px)" srcSet="/images/ai-cowork-manual-process-tablet-1536x2048.webp" />
+        <source media="(max-width: 1920px)" srcSet="/images/ai-cowork-manual-process-desktop-2048x1152.webp" />
+        <img
+          src="/images/ai-cowork-manual-process-ultrawide-2560x1080.webp"
+          alt=""
+          width="2560"
+          height="1080"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+      <div className="container manual-process-section__layout">
+        <div className="manual-process-section__copy">
+          <h2 id="manual-process-title">Você pode até utilizar IA. Mas o <span className="mesh-text mesh-text--on-dark">processo inteiro ainda volta para você.</span></h2>
+          <div className="manual-process-section__body">
+            <p>Você abre o ChatGPT, explica o problema, recebe uma resposta razoável e percebe que faltou contexto. Então corrige a informação, ajusta o tom, confere os fatos, copia o conteúdo para outro lugar e termina o trabalho manualmente.</p>
+            <p>Na próxima demanda, começa praticamente do zero.</p>
+            <p>Pensa num relatório que volta todo mês. Você procura arquivos, cruza dados, tenta entender o que mudou, escreve a análise, monta a apresentação e revisa tudo antes da reunião. A IA talvez ajude numa etapa, mas o processo continua dependendo de você para lembrar, organizar, pedir, corrigir e juntar as partes.</p>
+            <p>O mesmo acontece com reuniões que não viram próximos passos, pesquisas que ninguém tem tempo de começar, ideias esperando uma sprint e rotinas que consomem horas porque nunca foram transformadas em fluxo.</p>
+            <p>O problema está visível: a IA entrou na sua tela, mas ainda não entrou na forma como o trabalho avança.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function TrajectorySection() {
   return (
     <section className="section section--trajectory" id="trajetoria">
       <div className="container trajectory-intro trajectory-intro--centered">
         <div className="section-heading section-heading--wide">
-          <h2><span className="mesh-text mesh-text--on-dark">Foram anos transformando ideias em trabalho real.</span></h2>
+          <h2 className="trajectory-name"><span className="mesh-text mesh-text--on-dark">MATEUS PAZ</span></h2>
         </div>
         <div className="trajectory-intro__text prose">
-          <p>Eu sou Mateus Paz, especialista em IA. Minha trajetória começou no Nordeste, passou por design, audiovisual, lançamentos, marketing, desenvolvimento de software e construção de empresas.</p>
+          <p>Especialista em IA. Minha trajetória começou no Nordeste, passou por design, audiovisual, lançamentos, marketing, desenvolvimento de software e construção de empresas.</p>
           <p>Cada etapa me ensinou a mesma coisa: tecnologia só cria valor quando existe direção, execução e responsabilidade sobre o resultado.</p>
         </div>
       </div>
@@ -483,6 +627,25 @@ function TrajectorySection() {
             </li>
           ))}
         </ol>
+      </div>
+    </section>
+  );
+}
+
+function AudienceSection() {
+  return (
+    <section className="section audience-section" aria-labelledby="audience-title">
+      <div className="container">
+        <h2 id="audience-title">Para quem é o <span className="mesh-text">AI COWORK</span></h2>
+        <div className="audience-grid">
+          {personas.map(({ title, body, icon: Icon }) => (
+            <article className="audience-card" key={title}>
+              <Icon size={22} strokeWidth={1.7} aria-hidden="true" />
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -696,6 +859,7 @@ function ExperienceSection() {
       </section>
       <CohortSection />
       <JourneySection />
+      <OutcomesSection />
     </>
   );
 }
@@ -715,9 +879,18 @@ function CohortSection() {
           <div className="cohort-section__summary">
             <p>Online, ao vivo e com apenas 15 vagas. Encontros semanais de duas horas para construir especialistas digitais, fluxos e uma operação pessoal de IA conectada ao seu trabalho real.</p>
             <dl>
-              <div><dt>Onde</dt><dd>Google Meet</dd></div>
-              <div><dt>Horário</dt><dd>A definir</dd></div>
-              <div><dt>Candidaturas</dt><dd>Até 30 de agosto</dd></div>
+              <div>
+                <dt><Video size={18} strokeWidth={1.7} aria-hidden="true" /><span>Onde</span></dt>
+                <dd>Google Meet</dd>
+              </div>
+              <div>
+                <dt><Clock3 size={18} strokeWidth={1.7} aria-hidden="true" /><span>Horário</span></dt>
+                <dd>A definir</dd>
+              </div>
+              <div>
+                <dt><CalendarDays size={18} strokeWidth={1.7} aria-hidden="true" /><span>Candidaturas</span></dt>
+                <dd>Até 30 de agosto</dd>
+              </div>
             </dl>
           </div>
         </div>
@@ -740,60 +913,53 @@ function CohortSection() {
 
 function JourneySection() {
   return (
-    <section className="journey-section" aria-labelledby="journey-title">
-      <div className="container journey-section__layout">
-        <div className="journey-section__title">
-          <h2 id="journey-title" className="mesh-text mesh-text--on-dark">O percurso</h2>
-          <p>Uma progressão semanal: primeiro você aprende a dirigir. Depois, constrói, conecta e consolida sua própria operação.</p>
-        </div>
-        <ol className="journey-list">
-          {sessions.map(({ code, date, title, body }) => (
-            <li key={code}>
-              <span>{code}</span>
-              <div>
-                <strong>{title}</strong>
-                <small>{date}</small>
-              </div>
-              <p>{body}</p>
-            </li>
-          ))}
-        </ol>
+    <section className="journey-showcase" aria-labelledby="journey-title">
+      <div className="container journey-showcase__masthead">
+        <h2 id="journey-title"><span className="mesh-text mesh-text--on-dark">O percurso</span></h2>
+        <p>Uma progressão semanal: primeiro você aprende a dirigir. Depois, constrói, conecta e consolida sua própria operação.</p>
+      </div>
+      <div className="container journey-showcase__sessions">
+        {sessions.map(({ code, date, title, body }, index) => (
+          <article className="journey-session" key={code}>
+            <div className="journey-session__copy">
+              <span className="journey-session__meta">{code} · {date}</span>
+              <h3>{title}</h3>
+              <div className="journey-session__divider" aria-hidden="true" />
+              <p><CheckCircle2 size={20} strokeWidth={1.7} aria-hidden="true" />{body}</p>
+            </div>
+            <div className="journey-session__visual">
+              <img
+                src={sessionVisuals[index]}
+                alt=""
+                width="2048"
+                height="1536"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
 }
 
-function AboutSection() {
+function OutcomesSection() {
   return (
-    <section className="section section--about" id="mateus">
-      <div className="container about-grid">
-        <div className="about-visual">
-          <img
-            className="about-visual__frame"
-            src="/images/mateus-paz-estudio-v2.webp"
-            alt="Retrato de Mateus Paz, especialista em inteligência artificial"
-            loading="lazy"
-            decoding="async"
-          />
+    <section className="section outcomes-section" aria-labelledby="outcomes-title">
+      <div className="container outcomes-layout">
+        <div className="outcomes-intro">
+          <h2 id="outcomes-title">Em 2 meses você aprenderá <span className="mesh-text mesh-text--on-dark">como fazer a IA trabalhar para você com 100% de autonomia</span></h2>
         </div>
-        <div className="about-copy">
-          <h2>Eu criei o <span className="mesh-text">AI COWORK</span> porque usar IA como uma caixa de respostas já ficou pequeno demais.</h2>
-          <div className="prose prose--about">
-            <p>No meu trabalho, eu uso IA para pesquisar, analisar dados, organizar conhecimento, criar conteúdo, construir agentes, automatizar tarefas e tirar produtos e sistemas do papel.</p>
-            <p>Durante a primeira turma, eu vou abrir o meu processo, demonstrar o que já construí e explicar as decisões por trás de cada uso. Também vou mostrar onde a IA falha, quando uma automação não deveria rodar sozinha e por que o crivo humano ainda é a parte mais importante desse sistema.</p>
-          </div>
-          <div className="fit-grid">
-            <div>
-              <CheckCircle2 size={20} aria-hidden="true" />
-              <h3>Faz sentido para você se...</h3>
-              <p>Já usa ou experimentou IA, mas sente que ainda está improvisando e quer ampliar sua capacidade profissional.</p>
-            </div>
-            <div>
-              <X size={20} aria-hidden="true" />
-              <h3>Provavelmente não faz se...</h3>
-              <p>Quer uma automação completa feita por mim, procura uma fórmula sem prática ou pretende ignorar segurança e critério.</p>
-            </div>
-          </div>
+        <div className="outcomes-list">
+          {outcomes.map(({ title, body, icon: Icon }, index) => (
+            <article className="outcome-card" key={title}>
+              <span>{String(index + 1).padStart(2, '0')}</span>
+              <Icon size={22} strokeWidth={1.7} aria-hidden="true" />
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
@@ -805,7 +971,7 @@ function ApplicationSection() {
     <section className="section section--application" id="candidatura">
       <div className="container application-grid">
         <div>
-          <h2>A <span className="mesh-text">primeira turma</span> terá 15 vagas.</h2>
+          <h2>A <span className="mesh-text mesh-text--on-dark">primeira turma</span> terá 15 vagas.</h2>
         </div>
         <div className="application-copy prose">
           <p>Escolhi uma turma pequena porque quero acompanhar de perto como cada participante está usando a IA, onde está travando e quais funções fazem mais sentido para o seu trabalho.</p>
@@ -822,7 +988,6 @@ function FAQSection() {
     <section className="section section--faq" id="faq">
       <div className="container faq-layout">
         <div className="faq-heading">
-          <p className="section-index">Perguntas frequentes</p>
           <h2>O que você precisa saber antes de se candidatar.</h2>
           <p>Sem promessa mágica, sem dependência de uma ferramenta e sem automação no escuro.</p>
         </div>
@@ -906,7 +1071,15 @@ function ApplicationModal({ onClose, onSubmitted }) {
       if (!String(values[field.name] ?? '').trim()) nextErrors[field.name] = 'Responda este campo para continuar.';
     });
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    const firstInvalidField = current.fields.find((field) => nextErrors[field.name]);
+    if (firstInvalidField) {
+      window.requestAnimationFrame(() => {
+        const fieldElement = document.getElementById(`field-${firstInvalidField.name}`)
+          || document.querySelector(`[name="${firstInvalidField.name}"]`);
+        fieldElement?.focus();
+      });
+    }
+    return !firstInvalidField;
   };
 
   const next = (event) => {
@@ -1021,11 +1194,13 @@ function ApplicationModal({ onClose, onSubmitted }) {
                 ) : <span />}
                 {step < steps.length - 1 ? (
                   <button className="form-next" onClick={next} type="button">
-                    Continuar <ArrowRight size={17} />
+                    <span>Continuar</span>
+                    <ArrowRight className="form-next__hover-arrow" size={17} aria-hidden="true" />
                   </button>
                 ) : (
                   <button className="form-next" type="submit" disabled={submitting}>
-                    {submitting ? 'Enviando...' : 'Aplicar para uma das 15 vagas'} <ArrowRight size={17} />
+                    <span>{submitting ? 'Enviando...' : 'Aplicar para uma das 15 vagas'}</span>
+                    <ArrowRight className="form-next__hover-arrow" size={17} aria-hidden="true" />
                   </button>
                 )}
               </div>
