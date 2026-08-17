@@ -252,6 +252,21 @@ const outcomes = [
   },
 ];
 
+const founderBenefits = [
+  '6 encontros online e ao vivo',
+  'orientação direta comigo',
+  'laboratórios aplicados aos trabalhos da turma',
+  'correção coletiva dos casos que ajudam o grupo',
+  'gravações disponíveis por um ano',
+  'grupo privado no WhatsApp',
+  'modelos de direção, contexto, especialistas e revisão',
+  'possível encontro extra, se a turma precisar',
+  'plano pessoal de expansão do time digital',
+  'meus agentes, minhas skills, minhas ferramentas',
+  'área de membros com materiais e gravações',
+  'R$ 2.000 de cashback',
+];
+
 const sessionVisuals = [
   '/images/journey/01-direcao-profissional-2048x1536.webp',
   '/images/journey/02-especialistas-digitais-2048x1536.webp',
@@ -322,6 +337,7 @@ function formatBrazilianPhone(value) {
 function App() {
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [floatingCtaVisible, setFloatingCtaVisible] = useState(false);
+  const [founderBenefitsVisible, setFounderBenefitsVisible] = useState(false);
   const [pathname, setPathname] = useState(resolvePathname);
   const applicationTriggerRef = useRef(null);
   const restoreApplicationFocusRef = useRef(false);
@@ -372,6 +388,18 @@ function App() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const founderSection = document.getElementById('turma-fundadora');
+    if (!founderSection) return undefined;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setFounderBenefitsVisible(entry.isIntersecting);
+    });
+
+    observer.observe(founderSection);
+    return () => observer.disconnect();
+  }, []);
+
   const openApplication = (event) => {
     applicationTriggerRef.current = event?.currentTarget instanceof HTMLElement
       ? event.currentTarget
@@ -395,7 +423,7 @@ function App() {
     <div className="site-shell">
       <Hero onApply={openApplication} ctaShimmerActive={!floatingCtaVisible} />
       <AnimatePresence>
-        {floatingCtaVisible && <FloatingApplicationCTA onApply={openApplication} />}
+        {floatingCtaVisible && !founderBenefitsVisible && <FloatingApplicationCTA onApply={openApplication} />}
       </AnimatePresence>
       <main>
         <ManualProcessSection />
@@ -404,6 +432,7 @@ function App() {
         <ChangeDetailsSection />
         <ExperienceSection />
         <ApplicationSection />
+        <FounderBenefitsSection onApply={openApplication} />
         <FAQSection />
       </main>
       <Footer />
@@ -977,6 +1006,49 @@ function ApplicationSection() {
           <p>Escolhi uma turma pequena porque quero acompanhar de perto como cada participante está usando a IA, onde está travando e quais funções fazem mais sentido para o seu trabalho.</p>
           <p>Preencher o formulário não garante a vaga. Vamos analisar a aderência ao programa, a disponibilidade para participar e a composição da turma.</p>
           <p>Se sua candidatura fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FounderBenefitsSection({ onApply }) {
+  return (
+    <section className="section founder-benefits-section" id="turma-fundadora" aria-labelledby="founder-benefits-title">
+      <div className="container founder-benefits-section__content">
+        <h2 id="founder-benefits-title">Tudo o que acompanha a <span className="mesh-text mesh-text--on-dark">Turma Fundadora</span></h2>
+
+        <picture className="founder-benefits-section__visual">
+          <source
+            media="(max-width: 760px)"
+            srcSet="/images/founder-cohort/ai-cowork-founder-kit-mobile-1600x1600.webp"
+          />
+          <img
+            src="/images/founder-cohort/ai-cowork-founder-kit-desktop-2400x1600.webp"
+            alt="Composição dos materiais e da área de membros da Turma Fundadora do AI COWORK"
+            width="2400"
+            height="1600"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+
+        <div className="founder-benefits-card">
+          <ul>
+            {founderBenefits.map((benefit) => (
+              <li key={benefit}>
+                <span className="founder-benefits-card__check" aria-hidden="true">
+                  <CheckCircle2 size={19} strokeWidth={1.8} />
+                </span>
+                <span>{benefit}</span>
+              </li>
+            ))}
+          </ul>
+
+          <button className="founder-benefits-card__cta" type="button" onClick={onApply}>
+            <span>QUERO UMA VAGA</span>
+            <ArrowUpRight size={20} aria-hidden="true" />
+          </button>
         </div>
       </div>
     </section>

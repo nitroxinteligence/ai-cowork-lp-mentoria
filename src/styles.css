@@ -1525,6 +1525,153 @@ main dd,
   margin-bottom: 0;
 }
 
+.founder-benefits-section {
+  position: relative;
+  overflow: clip;
+  border-block: 1px solid rgba(199, 227, 241, 0.1);
+  background:
+    radial-gradient(ellipse at 12% 30%, rgba(23, 111, 209, 0.12) 0%, transparent 38%),
+    radial-gradient(ellipse at 88% 72%, rgba(66, 199, 245, 0.08) 0%, transparent 42%),
+    #020203;
+  color: var(--near-white);
+}
+
+.founder-benefits-section__content {
+  display: grid;
+  justify-items: center;
+}
+
+.founder-benefits-section h2 {
+  max-width: 16ch;
+  margin: 0;
+  color: var(--white);
+  font-size: var(--headline-size);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.founder-benefits-section__visual {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(100%, 1120px);
+  margin-top: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.founder-benefits-section__visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.founder-benefits-card {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(100%, 860px);
+  justify-items: center;
+  gap: clamp(2rem, 4vw, 3rem);
+  margin-top: clamp(-7rem, -7vw, -4rem);
+  padding: clamp(1.6rem, 4vw, 3.5rem);
+  border: 1px solid rgba(199, 227, 241, 0.18);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 96% -12%, rgba(23, 111, 209, 0.15) 0%, transparent 42%),
+    #080b10;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.founder-benefits-card ul {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.founder-benefits-card li {
+  display: grid;
+  align-items: start;
+  padding-block: 0.9rem;
+  border-bottom: 1px solid rgba(199, 227, 241, 0.1);
+  color: rgba(234, 244, 255, 0.76);
+  font-family: var(--font-body-copy);
+  font-size: clamp(0.82rem, 1.2vw, 0.96rem);
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.8rem;
+  line-height: 1.55;
+}
+
+.founder-benefits-card li:first-child {
+  padding-top: 0;
+}
+
+.founder-benefits-card li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.founder-benefits-card__check {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  border: 1px solid rgba(66, 199, 245, 0.3);
+  border-radius: 50%;
+  background: rgba(23, 111, 209, 0.12);
+  color: var(--cyan);
+}
+
+.founder-benefits-card__cta {
+  display: inline-flex;
+  width: min(100%, 360px);
+  min-height: 64px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-inline: 1.5rem;
+  border: 1px solid rgba(199, 227, 241, 0.3);
+  border-radius: 8px;
+  background-color: var(--navy);
+  background-image: var(--action-mesh);
+  background-position: 50% 50%;
+  background-size: 138% 152%;
+  color: var(--white);
+  cursor: pointer;
+  font-family: var(--font-body-copy);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms ease,
+    background-position 280ms var(--ease-out),
+    border-color 180ms ease;
+}
+
+.founder-benefits-card__cta svg {
+  transition: transform 180ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .founder-benefits-card__cta:hover {
+    border-color: rgba(199, 227, 241, 0.56);
+    background-position: 44% 42%;
+    box-shadow: 0 10px 24px rgba(23, 111, 209, 0.24);
+    transform: translateY(-2px);
+  }
+
+  .founder-benefits-card__cta:hover svg {
+    transform: translate(3px, -3px);
+  }
+}
+
+.founder-benefits-card__cta:active {
+  transform: scale(0.975);
+}
+
 .section--trajectory {
   overflow: clip;
   background: #000;
@@ -3454,6 +3601,40 @@ main dd,
   .outcome-card {
     min-height: 0;
     grid-template-columns: 2rem 1.75rem minmax(0, 1fr);
+  }
+
+  .founder-benefits-section h2 {
+    max-width: 14ch;
+  }
+
+  .founder-benefits-section__visual {
+    width: calc(100% + 2rem);
+    margin-top: 2rem;
+    margin-inline: -1rem;
+  }
+
+  .founder-benefits-card {
+    gap: 2rem;
+    margin-top: -2rem;
+    padding: 1.35rem;
+    border-radius: 12px;
+  }
+
+  .founder-benefits-card li {
+    padding-block: 0.8rem;
+    font-size: 0.82rem;
+    grid-template-columns: 1.5rem minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .founder-benefits-card__check {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .founder-benefits-card__cta {
+    min-height: 56px;
+    font-size: 0.8rem;
   }
 }
 
