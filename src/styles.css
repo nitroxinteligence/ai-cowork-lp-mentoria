@@ -1135,72 +1135,16 @@ main dd,
 }
 
 .capability-list li {
-  --mesh-a: rgba(66, 199, 245, 0.24);
-  --mesh-b: rgba(23, 111, 209, 0.16);
-  --mesh-c: rgba(110, 158, 208, 0.2);
-  --mesh-a-position: 92% -18%;
-  --mesh-b-position: -12% 118%;
-  --mesh-c-position: 78% 112%;
   display: flex;
   min-height: 108px;
   align-items: flex-start;
   gap: 1rem;
   padding: clamp(1.25rem, 2.5vw, 1.65rem);
-  border: 1px solid rgba(110, 158, 208, 0.24);
+  border: 1px solid rgba(199, 227, 241, 0.22);
   border-radius: 14px;
   background:
-    radial-gradient(circle at var(--mesh-a-position), var(--mesh-a) 0%, transparent 48%),
-    radial-gradient(circle at var(--mesh-b-position), var(--mesh-b) 0%, transparent 54%),
-    radial-gradient(circle at var(--mesh-c-position), var(--mesh-c) 0%, transparent 50%),
-    linear-gradient(135deg, #ffffff 0%, #f7fbff 42%, #eaf4ff 100%);
-}
-
-.capability-list li:nth-child(2) {
-  --mesh-a: rgba(110, 158, 208, 0.28);
-  --mesh-b: rgba(10, 74, 166, 0.12);
-  --mesh-a-position: -8% -20%;
-  --mesh-b-position: 112% 110%;
-}
-
-.capability-list li:nth-child(3) {
-  --mesh-a: rgba(199, 227, 241, 0.72);
-  --mesh-b: rgba(66, 199, 245, 0.2);
-  --mesh-c: rgba(23, 111, 209, 0.12);
-  --mesh-a-position: 110% -14%;
-  --mesh-b-position: -12% 112%;
-}
-
-.capability-list li:nth-child(4) {
-  --mesh-a: rgba(23, 111, 209, 0.2);
-  --mesh-b: rgba(199, 227, 241, 0.64);
-  --mesh-c: rgba(66, 199, 245, 0.16);
-  --mesh-a-position: 102% 50%;
-  --mesh-b-position: 20% 118%;
-  --mesh-c-position: 4% -24%;
-}
-
-.capability-list li:nth-child(5) {
-  --mesh-a: rgba(10, 74, 166, 0.14);
-  --mesh-b: rgba(66, 199, 245, 0.24);
-  --mesh-a-position: -12% 96%;
-  --mesh-b-position: 108% -16%;
-}
-
-.capability-list li:nth-child(6) {
-  --mesh-a: rgba(199, 227, 241, 0.78);
-  --mesh-b: rgba(23, 111, 209, 0.15);
-  --mesh-c: rgba(110, 158, 208, 0.18);
-  --mesh-a-position: 10% -24%;
-  --mesh-b-position: 112% 104%;
-}
-
-.capability-list li:nth-child(7) {
-  --mesh-a: rgba(66, 199, 245, 0.2);
-  --mesh-b: rgba(10, 74, 166, 0.15);
-  --mesh-c: rgba(199, 227, 241, 0.72);
-  --mesh-a-position: 104% -18%;
-  --mesh-b-position: 64% 122%;
-  --mesh-c-position: -8% 80%;
+    radial-gradient(circle at 100% 0%, rgba(23, 111, 209, 0.13), transparent 42%),
+    #080b10;
 }
 
 .capability-list__icon {
@@ -1210,16 +1154,16 @@ main dd,
   flex: 0 0 40px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(23, 111, 209, 0.18);
+  border: 1px solid rgba(66, 199, 245, 0.24);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.64);
-  color: var(--sapphire);
+  background: rgba(23, 111, 209, 0.12);
+  color: var(--cyan);
 }
 
 .capability-list p {
   margin: 0;
   padding-top: 0.38rem;
-  color: var(--ink);
+  color: rgba(234, 244, 255, 0.82);
   font-size: clamp(1rem, 1.6vw, 1.17rem);
   font-weight: 500;
   letter-spacing: -0.02em;
