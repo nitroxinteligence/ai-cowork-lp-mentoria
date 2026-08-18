@@ -264,7 +264,7 @@ const founderBenefits = [
   'plano pessoal de expansão do time digital',
   'meus agentes, minhas skills, minhas ferramentas',
   'área de membros com materiais e gravações',
-  'R$ 2.000 de cashback',
+  'R$ 500 de cashback',
 ];
 
 const sessionVisuals = [
@@ -703,7 +703,6 @@ function ChangeDetailsSection() {
           </div>
         </div>
       </section>
-      <ExperienceSectionBoundary />
     </>
   );
 }
@@ -874,16 +873,16 @@ function ProfessionalOperationGraph() {
   );
 }
 
-function ExperienceSectionBoundary() {
-  return <div className="section-divider" aria-hidden="true" />;
-}
-
 function ExperienceSection() {
   return (
     <>
       <section className="section section--experience" id="experiencia">
         <div className="container experience-statement">
-          <h2>Ferramenta muda. <span className="mesh-text">Saber dirigir o trabalho continua valendo.</span></h2>
+          <h2>
+            <span className="experience-statement__line">FERRAMENTA É COMMODITY.</span>
+            <span className="experience-statement__line mesh-text">SABER CONDUZIR A IA</span>
+            <span className="experience-statement__line mesh-text">É A CHAVE-MESTRA.</span>
+          </h2>
         </div>
       </section>
       <CohortSection />

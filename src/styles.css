@@ -1170,11 +1170,6 @@ main dd,
   line-height: 1.45;
 }
 
-.section-divider {
-  height: 1px;
-  background: var(--line);
-}
-
 .section--experience {
   display: grid;
   min-height: clamp(420px, 62vh, 720px);
@@ -1189,8 +1184,17 @@ main dd,
 }
 
 .experience-statement h2 {
-  max-width: 16ch;
+  max-width: none;
   margin: 0;
+  font-size: clamp(3rem, 5.8vw, 5.7rem);
+  letter-spacing: -0.055em;
+  line-height: 0.92;
+  text-transform: uppercase;
+}
+
+.experience-statement__line {
+  display: block;
+  white-space: nowrap;
 }
 
 .section-heading--split {
@@ -3544,7 +3548,14 @@ main dd,
 
   .outcome-card {
     min-height: 0;
-    grid-template-columns: 2rem 1.75rem minmax(0, 1fr);
+    padding: 1.25rem;
+    grid-template-columns: 1.65rem 1.65rem minmax(0, 1fr);
+    gap: 0.65rem;
+  }
+
+  .outcome-card p {
+    margin-top: 1.1rem;
+    grid-column: 1 / -1;
   }
 
   .founder-benefits-section h2 {
@@ -3579,6 +3590,12 @@ main dd,
   .founder-benefits-card__cta {
     min-height: 56px;
     font-size: 0.8rem;
+  }
+
+  .experience-statement h2 {
+    max-width: none;
+    font-size: clamp(1.75rem, 7.6vw, 3.4rem);
+    line-height: 0.94;
   }
 }
 
