@@ -259,7 +259,7 @@ const founderBenefits = [
   'correção coletiva dos casos que ajudam o grupo',
   'gravações disponíveis por um ano',
   'grupo privado no WhatsApp',
-  'modelos de direção, contexto, especialistas e revisão',
+  'Meus especialistas digitais',
   'possível encontro extra, se a turma precisar',
   'plano pessoal de expansão do time digital',
   'meus agentes, minhas skills, minhas ferramentas',
@@ -1019,14 +1019,23 @@ function FounderBenefitsSection({ onApply }) {
 
         <picture className="founder-benefits-section__visual">
           <source
-            media="(max-width: 760px)"
-            srcSet="/images/founder-cohort/ai-cowork-founder-kit-mobile-1600x1600.webp"
+            media="(min-width: 1800px)"
+            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-ultrawide-2560x1440.webp"
+          />
+          <source
+            media="(min-width: 1024px)"
+            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-desktop-2400x1600.webp"
+          />
+          <source
+            media="(min-width: 761px)"
+            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-tablet-2048x1536.webp"
           />
           <img
-            src="/images/founder-cohort/ai-cowork-founder-kit-desktop-2400x1600.webp"
+            src="/images/founder-cohort/ai-cowork-founder-kit-approved-mobile-1600x1350.webp"
             alt="Composição dos materiais e da área de membros da Turma Fundadora do AI COWORK"
-            width="2400"
-            height="1600"
+            width="1600"
+            height="1350"
+            sizes="(min-width: 1800px) 820px, (min-width: 1024px) 680px, (min-width: 761px) calc(100vw - 6rem), 94vw"
             loading="lazy"
             decoding="async"
           />

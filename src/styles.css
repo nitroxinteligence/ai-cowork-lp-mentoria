@@ -1505,7 +1505,7 @@ main dd,
   position: relative;
   z-index: 1;
   display: block;
-  width: min(100%, 1120px);
+  width: min(100%, 820px);
   margin-top: clamp(2.5rem, 5vw, 4.5rem);
 }
 
@@ -1516,14 +1516,26 @@ main dd,
   object-fit: contain;
 }
 
+@media (min-width: 1024px) {
+  .founder-benefits-section__visual {
+    width: min(100%, 680px);
+  }
+}
+
+@media (min-width: 1800px) {
+  .founder-benefits-section__visual {
+    width: min(100%, 820px);
+  }
+}
+
 .founder-benefits-card {
   position: relative;
   z-index: 2;
   display: grid;
-  width: min(100%, 860px);
+  width: min(100%, 720px);
   justify-items: center;
   gap: clamp(2rem, 4vw, 3rem);
-  margin-top: clamp(-7rem, -7vw, -4rem);
+  margin-top: clamp(1.5rem, 3vw, 2.5rem);
   padding: clamp(1.6rem, 4vw, 3.5rem);
   border: 1px solid rgba(199, 227, 241, 0.18);
   border-radius: 16px;
@@ -3563,14 +3575,14 @@ main dd,
   }
 
   .founder-benefits-section__visual {
-    width: calc(100% + 2rem);
+    width: min(94%, 430px);
     margin-top: 2rem;
-    margin-inline: -1rem;
+    margin-inline: auto;
   }
 
   .founder-benefits-card {
     gap: 2rem;
-    margin-top: -2rem;
+    margin-top: 1rem;
     padding: 1.35rem;
     border-radius: 12px;
   }
