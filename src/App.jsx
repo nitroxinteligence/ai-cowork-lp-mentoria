@@ -8,6 +8,7 @@ import {
   Check,
   CheckCircle2,
   Clock3,
+  Factory,
   Layers3,
   Megaphone,
   PanelsTopLeft,
@@ -216,6 +217,11 @@ const personas = [
     title: 'Profissionais em transição ou potencialização de carreira',
     body: 'Para quem quer combinar a experiência que já possui com novas capacidades e construir uma forma mais valiosa de atuar, decidir e produzir.',
     icon: Route,
+  },
+  {
+    title: 'Líderes e especialistas da indústria',
+    body: 'Para líderes, engenheiros, analistas, profissionais de staff, diretores e executivos da indústria que querem aplicar IA a operações, projetos, análises e decisões complexas.',
+    icon: Factory,
   },
 ];
 
