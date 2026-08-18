@@ -267,13 +267,13 @@ const founderBenefits = [
   'R$ 500 de cashback',
 ];
 
-const sessionVisuals = [
-  '/images/journey/01-direcao-profissional-2048x1536.webp',
-  '/images/journey/02-especialistas-digitais-2048x1536.webp',
-  '/images/journey/03-time-digital-producao-2048x1536.webp',
-  '/images/journey/04-automacao-delegacao-2048x1536.webp',
-  '/images/journey/05-construcao-com-ia-2048x1536.webp',
-  '/images/journey/06-sistema-ai-cowork-2048x1536.webp',
+const sessionVideos = [
+  null,
+  'https://tjnokoaeieywclhzlyte.supabase.co/storage/v1/object/sign/Interno/video-3.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83ZjYyMjIzMy0xY2QyLTQ1YjktYTRmZi1lNThlOWQyMDRmZGMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJbnRlcm5vL3ZpZGVvLTMubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NzAyMjYzOCwiZXhwIjoyMTMzOTE4NjM4fQ.wWJuHwBZ0tLovrbCGGz11D3e-ny2fPayh0rXUOJ6gzs',
+  null,
+  'https://tjnokoaeieywclhzlyte.supabase.co/storage/v1/object/sign/Interno/video-1.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83ZjYyMjIzMy0xY2QyLTQ1YjktYTRmZi1lNThlOWQyMDRmZGMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJbnRlcm5vL3ZpZGVvLTEubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NzAyMjY5MCwiZXhwIjoyMTMzOTE4NjkwfQ.eVysx2Ir_2_4yL6UBNi3QhkXSYUzCmIBpPfFCKghH-c',
+  null,
+  'https://tjnokoaeieywclhzlyte.supabase.co/storage/v1/object/sign/Interno/video-2.mp4?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83ZjYyMjIzMy0xY2QyLTQ1YjktYTRmZi1lNThlOWQyMDRmZGMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJJbnRlcm5vL3ZpZGVvLTIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4NzAyMjczMSwiZXhwIjoyMTMzOTE4NzMxfQ.g_fqLMi1DhOXEyipLtlRJuIsa7vQNva93G19K736tUE',
 ];
 
 const steps = [
@@ -940,6 +940,8 @@ function CohortSection() {
 }
 
 function JourneySection() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section className="journey-showcase" aria-labelledby="journey-title">
       <div className="container journey-showcase__masthead">
@@ -948,23 +950,29 @@ function JourneySection() {
       </div>
       <div className="container journey-showcase__sessions">
         {sessions.map(({ code, date, title, body }, index) => (
-          <article className="journey-session" key={code}>
+          <article
+            className={`journey-session${sessionVideos[index] ? '' : ' journey-session--text-only journey-session--checklist-right'}`}
+            key={code}
+          >
             <div className="journey-session__copy">
               <span className="journey-session__meta">{code} · {date}</span>
               <h3>{title}</h3>
-              <div className="journey-session__divider" aria-hidden="true" />
+              {sessionVideos[index] && <div className="journey-session__divider" aria-hidden="true" />}
               <p><CheckCircle2 size={20} strokeWidth={1.7} aria-hidden="true" />{body}</p>
             </div>
-            <div className="journey-session__visual">
-              <img
-                src={sessionVisuals[index]}
-                alt=""
-                width="2048"
-                height="1536"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
+            {sessionVideos[index] && (
+              <div className="journey-session__visual">
+                <video
+                  src={sessionVideos[index]}
+                  autoPlay={!reduceMotion}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  aria-hidden="true"
+                />
+              </div>
+            )}
           </article>
         ))}
       </div>

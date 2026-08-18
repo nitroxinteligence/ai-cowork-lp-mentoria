@@ -2172,11 +2172,25 @@ main dd,
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.journey-session--text-only {
+  width: 100%;
+  min-height: 320px;
+  border-color: rgba(199, 227, 241, 0.14);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(23, 111, 209, 0.13), transparent 42%),
+    #080b10;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .journey-session__copy {
   display: flex;
   justify-content: center;
   flex-direction: column;
   padding: clamp(2rem, 5vw, 4.5rem);
+}
+
+.journey-session--text-only .journey-session__copy {
+  padding: clamp(1.75rem, 3vw, 3rem);
 }
 
 .journey-session:nth-child(even) .journey-session__copy {
@@ -2222,6 +2236,36 @@ main dd,
   line-height: 1.72;
 }
 
+.journey-session--checklist-right {
+  width: 100%;
+}
+
+.journey-session--checklist-right .journey-session__copy {
+  display: grid;
+  align-items: center;
+  grid-template:
+    "meta meta" auto
+    "title checklist" 1fr
+    / minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  column-gap: clamp(2rem, 6vw, 6rem);
+  row-gap: clamp(1rem, 1.5vw, 1.5rem);
+}
+
+.journey-session--checklist-right .journey-session__meta {
+  margin-bottom: 0;
+  grid-area: meta;
+}
+
+.journey-session--checklist-right h3 {
+  grid-area: title;
+}
+
+.journey-session--checklist-right .journey-session__copy p {
+  max-width: 42ch;
+  grid-area: checklist;
+  justify-self: end;
+}
+
 .journey-session__copy p svg {
   flex: 0 0 auto;
   margin-top: 0.2rem;
@@ -2235,13 +2279,16 @@ main dd,
   background: #050505;
 }
 
-.journey-session__visual img {
+.journey-session__visual video {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: saturate(0.78) contrast(1.04);
+  background: #000;
+  filter: saturate(0.72) contrast(1.38) brightness(0.86);
+  transform: scale(1.12);
+  transform-origin: center 58%;
 }
 
 .outcomes-section {
@@ -3539,6 +3586,23 @@ main dd,
   .journey-session {
     min-height: 0;
     grid-template-columns: 1fr;
+  }
+
+  .journey-session--text-only {
+    width: 100%;
+  }
+
+  .journey-session--checklist-right .journey-session__copy {
+    display: flex;
+  }
+
+  .journey-session--checklist-right .journey-session__copy p {
+    max-width: 52ch;
+    justify-self: auto;
+  }
+
+  .journey-session--checklist-right .journey-session__meta {
+    margin-bottom: 1.5rem;
   }
 
   .journey-session:nth-child(even) .journey-session__copy {
