@@ -1289,13 +1289,13 @@ function MentorOnboardingPage() {
       <main className="mentor-onboarding-main">
         <div className="container">
           <div className="mentor-onboarding-intro">
-            <div className="mentor-onboarding-intro__copy">
+            <h2 className="mentor-onboarding-intro__copy">
               {mentorOnboardingOpening.map((paragraphText, index) => (
-                <p className={index === mentorOnboardingOpening.length - 1 ? 'mentor-onboarding-intro__note' : ''} key={paragraphText}>
+                <span key={paragraphText}>
                   {paragraphText}
-                </p>
+                </span>
               ))}
-            </div>
+            </h2>
           </div>
 
           <div className="mentor-onboarding-layout">
