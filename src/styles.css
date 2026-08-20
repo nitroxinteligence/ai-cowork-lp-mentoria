@@ -4686,12 +4686,6 @@ main dd,
   line-height: 1.7;
 }
 
-.mentor-onboarding-submitted__link {
-  width: fit-content;
-  margin-top: 2rem;
-  text-decoration: none;
-}
-
 @media (max-width: 900px) {
   .mentor-onboarding-layout {
     grid-template-columns: 1fr;

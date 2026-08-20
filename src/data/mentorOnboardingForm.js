@@ -72,6 +72,7 @@ const deliveryOptions = [
   'Um pequeno aplicativo ou ferramenta',
   'Um sistema pessoal de trabalho com IA',
   'Ainda não sei',
+  'Outro',
 ];
 
 const successOptions = [

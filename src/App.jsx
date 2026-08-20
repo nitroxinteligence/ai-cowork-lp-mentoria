@@ -1152,6 +1152,7 @@ function MentorOnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [syncState, setSyncState] = useState({ status: 'idle' });
+  const reduceMotion = useReducedMotion();
   const steps = getMentorOnboardingSteps(values);
   const activeStepIndex = Math.min(stepIndex, steps.length - 1);
   const currentStep = steps[activeStepIndex];
@@ -1237,11 +1238,13 @@ function MentorOnboardingPage() {
     const draft = saveDraft(draftRef.current.values, nextStep);
     void flushMentorOnboardingDraft(draft).catch(() => undefined);
     goToStep(nextStep);
+    scrollMentorOnboardingFormToTop(reduceMotion);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateAllSteps()) return;
+    scrollMentorOnboardingFormToTop(reduceMotion);
     setSubmitting(true);
     setSubmitError('');
 
@@ -1433,6 +1436,15 @@ function isOtherOption(option) {
   return option === 'Outro' || option === 'Outra';
 }
 
+function scrollMentorOnboardingFormToTop(reduceMotion) {
+  window.requestAnimationFrame(() => {
+    document.querySelector('.mentor-onboarding-card')?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  });
+}
+
 function MentorOnboardingSubmitted() {
   return (
     <div className="mentor-onboarding-page">
@@ -1440,7 +1452,6 @@ function MentorOnboardingSubmitted() {
         <div className="container mentor-onboarding-submitted">
           <h1>Obrigado por compartilhar seu ponto de partida.</h1>
           <p>Suas respostas foram registradas. Vou usá-las para preparar os encontros e acompanhar o seu processo com mais contexto.</p>
-          <a className="mentor-onboarding-next mentor-onboarding-submitted__link" href="/">Voltar para a página principal <ArrowUpRight size={17} aria-hidden="true" /></a>
         </div>
       </main>
       <footer className="mentor-onboarding-footer">
