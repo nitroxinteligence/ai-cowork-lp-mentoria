@@ -11,6 +11,8 @@ import {
   Factory,
   Layers3,
   Megaphone,
+  Mic,
+  MicOff,
   PanelsTopLeft,
   Play,
   RefreshCcw,
@@ -32,9 +34,19 @@ import {
   submitLeadApplication,
   subscribeToLeadDraftSync,
 } from './lib/leadApplicationDraft';
+import { getMentorOnboardingSteps, mentorOnboardingOpening } from './data/mentorOnboardingForm';
+import {
+  flushMentorOnboardingDraft,
+  getOrCreateMentorOnboardingDraft,
+  persistMentorOnboardingDraft,
+  startMentorOnboardingSync,
+  submitMentorOnboarding,
+  subscribeToMentorOnboardingSync,
+} from './lib/mentorOnboardingDraft';
 
 const HERO_VIDEO_ENABLED = false;
 const THANK_YOU_PATH = '/parabens';
+const MENTOR_ONBOARDING_PATH = '/mentorado';
 const THANK_YOU_ACCESS_KEY = 'ai-cowork:thank-you-access:v1';
 const WHATSAPP_MESSAGE = 'Olá! Preenchi minha candidatura para a primeira turma do AI COWORK e gostaria de receber mais informações sobre os próximos passos.';
 const WHATSAPP_URL = `https://wa.me/5581982986181?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
@@ -73,42 +85,42 @@ function resolvePathname() {
 const sessions = [
   {
     code: 'S1',
-    date: '05 SET',
+    date: '10 SET',
     title: 'Da conversa solta à direção profissional',
     body: 'Você entende o que a IA já consegue fazer, aprende a escolher o modo certo para cada trabalho e começa a dirigir com objetivo, contexto, critérios e limites.',
     icon: Target,
   },
   {
     code: 'S2',
-    date: '12 SET',
+    date: '20 SET',
     title: 'Especialistas digitais',
     body: 'Você aprende a configurar papéis com função, competência, fontes, processo e padrão de qualidade ligados ao seu trabalho real.',
     icon: UserCog,
   },
   {
     code: 'S3',
-    date: '19 SET',
+    date: '30 SET',
     title: 'Time digital e produção em cadeia',
     body: 'Você coordena especialistas para que pesquisa, análise, estratégia, criação e revisão deixem de acontecer em conversas desconectadas.',
     icon: Workflow,
   },
   {
     code: 'S4',
-    date: '26 SET',
+    date: '10 OUT',
     title: 'Automação e delegação',
     body: 'Você diferencia automação comum, etapa com IA e agente. Também aprende a conectar tarefas recorrentes a ferramentas autorizadas.',
     icon: Zap,
   },
   {
     code: 'S5',
-    date: '03 OUT',
+    date: '20 OUT',
     title: 'Construção com IA',
     body: 'Você cria uma página, apresentação, dashboard, protótipo, calculadora, pequeno aplicativo ou outro ativo útil e entende os limites.',
     icon: PanelsTopLeft,
   },
   {
     code: 'S6',
-    date: '10 OUT',
+    date: '30 OUT',
     title: 'Seu sistema AI COWORK',
     body: 'Você organiza especialistas, fluxos e ativos, define o que pode ser assistido ou automatizado e sai com um plano de expansão.',
     icon: RefreshCcw,
@@ -149,12 +161,12 @@ const trajectory = [
 ];
 
 const cohortDates = [
-  { day: '05', month: 'SET', code: 'S1' },
-  { day: '12', month: 'SET', code: 'S2' },
-  { day: '19', month: 'SET', code: 'S3' },
-  { day: '26', month: 'SET', code: 'S4' },
-  { day: '03', month: 'OUT', code: 'S5' },
-  { day: '10', month: 'OUT', code: 'S6' },
+  { day: '10', month: 'SET', code: 'S1' },
+  { day: '20', month: 'SET', code: 'S2' },
+  { day: '30', month: 'SET', code: 'S3' },
+  { day: '10', month: 'OUT', code: 'S4' },
+  { day: '20', month: 'OUT', code: 'S5' },
+  { day: '30', month: 'OUT', code: 'S6' },
 ];
 
 const faqs = [
@@ -176,7 +188,7 @@ const faqs = [
   },
   {
     question: 'Como funcionam os encontros e as gravações?',
-    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados semanalmente entre 5 de setembro e 10 de outubro. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
+    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados a cada 10 dias entre 10 de setembro e 30 de outubro. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
   },
   {
     question: 'Haverá acompanhamento entre os encontros?',
@@ -353,7 +365,14 @@ function App() {
     setApplicationOpen(false);
   };
 
-  useEffect(() => startLeadDraftSync(), []);
+  useEffect(() => {
+    const stopLeadSync = startLeadDraftSync();
+    const stopMentorOnboardingSync = startMentorOnboardingSync();
+    return () => {
+      stopLeadSync?.();
+      stopMentorOnboardingSync?.();
+    };
+  }, []);
 
   useEffect(() => {
     const handlePopState = () => setPathname(resolvePathname());
@@ -424,6 +443,7 @@ function App() {
   };
 
   if (pathname === THANK_YOU_PATH) return <ThankYouPage />;
+  if (pathname === MENTOR_ONBOARDING_PATH) return <MentorOnboardingPage />;
 
   return (
     <div className="site-shell">
@@ -911,7 +931,7 @@ function CohortSection() {
             </h2>
           </div>
           <div className="cohort-section__summary">
-            <p>Online, ao vivo e com apenas 15 vagas. Encontros semanais de duas horas para construir especialistas digitais, fluxos e uma operação pessoal de IA conectada ao seu trabalho real.</p>
+            <p>Online, ao vivo e com apenas 15 vagas. Encontros a cada 10 dias, com duas horas de duração, para construir especialistas digitais, fluxos e uma operação pessoal de IA conectada ao seu trabalho real.</p>
             <dl>
               <div>
                 <dt><Video size={18} strokeWidth={1.7} aria-hidden="true" /><span>Onde</span></dt>
@@ -952,7 +972,7 @@ function JourneySection() {
     <section className="journey-showcase" aria-labelledby="journey-title">
       <div className="container journey-showcase__masthead">
         <h2 id="journey-title"><span className="mesh-text mesh-text--on-dark">O percurso</span></h2>
-        <p>Uma progressão semanal: primeiro você aprende a dirigir. Depois, constrói, conecta e consolida sua própria operação.</p>
+        <p>Uma progressão a cada 10 dias: primeiro você aprende a dirigir. Depois, constrói, conecta e consolida sua própria operação.</p>
       </div>
       <div className="container journey-showcase__sessions">
         {sessions.map(({ code, date, title, body }, index) => (
@@ -1117,6 +1137,627 @@ function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function MentorOnboardingPage() {
+  const initialDraftRef = useRef(null);
+  if (!initialDraftRef.current) initialDraftRef.current = getOrCreateMentorOnboardingDraft();
+
+  const draftRef = useRef(initialDraftRef.current.draft);
+  const [stepIndex, setStepIndex] = useState(initialDraftRef.current.draft.currentStep);
+  const [values, setValues] = useState(initialDraftRef.current.draft.values);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [syncState, setSyncState] = useState({ status: 'idle' });
+  const steps = getMentorOnboardingSteps(values);
+  const activeStepIndex = Math.min(stepIndex, steps.length - 1);
+  const currentStep = steps[activeStepIndex];
+
+  useEffect(() => {
+    if (stepIndex !== activeStepIndex) setStepIndex(activeStepIndex);
+  }, [activeStepIndex, stepIndex]);
+
+  useEffect(() => subscribeToMentorOnboardingSync(setSyncState), []);
+
+  const saveDraft = (nextValues, nextStep = activeStepIndex) => {
+    const nextDraft = {
+      ...draftRef.current,
+      currentStep: nextStep,
+      values: nextValues,
+    };
+    draftRef.current = persistMentorOnboardingDraft(nextDraft);
+    return nextDraft;
+  };
+
+  const updateValue = (name, value) => {
+    const nextValues = { ...draftRef.current.values, [name]: value };
+    setValues(nextValues);
+    saveDraft(nextValues);
+    setErrors((previous) => ({ ...previous, [name]: undefined }));
+    setSubmitError('');
+  };
+
+  const validateFields = (step) => {
+    const nextErrors = {};
+
+    step.fields.forEach((field) => {
+      if (field.required === false) return;
+      if (isMentorOnboardingValueEmpty(values[field.name], field)) nextErrors[field.name] = 'Responda este campo para continuar.';
+    });
+
+    return nextErrors;
+  };
+
+  const focusFirstError = (step, nextErrors) => {
+    const firstInvalidField = step.fields.find((field) => nextErrors[field.name]);
+    if (firstInvalidField) {
+      window.requestAnimationFrame(() => {
+        const fieldElement = document.getElementById(`mentor-field-${firstInvalidField.name}`)
+          || document.querySelector(`[name="${firstInvalidField.name}"]`);
+        fieldElement?.focus();
+      });
+    }
+  };
+
+  const validateStep = (step = currentStep) => {
+    const nextErrors = validateFields(step);
+
+    setErrors(nextErrors);
+    focusFirstError(step, nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const validateAllSteps = () => {
+    for (const [index, step] of steps.entries()) {
+      const nextErrors = validateFields(step);
+      if (Object.keys(nextErrors).length > 0) {
+        setStepIndex(index);
+        setErrors(nextErrors);
+        focusFirstError(step, nextErrors);
+        return false;
+      }
+    }
+
+    setErrors({});
+    return true;
+  };
+
+  const goToStep = (nextIndex) => {
+    setStepIndex(nextIndex);
+    setErrors({});
+  };
+
+  const handleNext = (event) => {
+    event.preventDefault();
+    if (!validateStep()) return;
+    const nextStep = Math.min(activeStepIndex + 1, steps.length - 1);
+    const draft = saveDraft(draftRef.current.values, nextStep);
+    void flushMentorOnboardingDraft(draft).catch(() => undefined);
+    goToStep(nextStep);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateAllSteps()) return;
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const draft = saveDraft(draftRef.current.values, activeStepIndex);
+      await submitMentorOnboarding(draft);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(error.message || 'Não foi possível enviar o formulário. Tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const syncMessage = {
+    error: 'Rascunho salvo neste dispositivo; sincronização pendente.',
+    idle: initialDraftRef.current.restored
+      ? 'Rascunho recuperado neste dispositivo.'
+      : 'Seu progresso será salvo automaticamente.',
+    offline: 'Sem internet — progresso salvo neste dispositivo.',
+    saved: 'Progresso salvo.',
+    submitting: 'Enviando respostas...',
+    syncing: 'Salvando progresso...',
+    submitted: 'Respostas enviadas.',
+  }[syncState.status] || 'Seu progresso será salvo automaticamente.';
+
+  if (submitted) return <MentorOnboardingSubmitted />;
+
+  return (
+    <div className="mentor-onboarding-page">
+      <header className="mentor-onboarding-hero">
+        <div className="container">
+          <div className="mentor-onboarding-hero__content">
+            <BrandLogo className="mentor-onboarding-hero__logo" />
+            <h1>Assista ao vídeo antes de começar.</h1>
+            <figure className="mentor-onboarding-video">
+              <div className="mentor-onboarding-video__placeholder" role="img" aria-label="Placeholder para o vídeo">
+                <Play size={28} fill="currentColor" aria-hidden="true" />
+              </div>
+            </figure>
+          </div>
+        </div>
+      </header>
+
+      <main className="mentor-onboarding-main">
+        <div className="container">
+          <div className="mentor-onboarding-intro">
+            <div className="mentor-onboarding-intro__copy">
+              {mentorOnboardingOpening.map((paragraphText, index) => (
+                <p className={index === mentorOnboardingOpening.length - 1 ? 'mentor-onboarding-intro__note' : ''} key={paragraphText}>
+                  {paragraphText}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="mentor-onboarding-layout">
+            <aside className="mentor-onboarding-sidebar" aria-label="Etapas do formulário">
+              <div className="mentor-onboarding-sidebar__heading">
+                <span>Seu percurso</span>
+                <strong>{String(activeStepIndex + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</strong>
+              </div>
+              <ol className="mentor-onboarding-steps">
+                {steps.map((item, index) => {
+                  const Icon = item.icon;
+                  const isActive = index === activeStepIndex;
+                  const isCompleted = index < activeStepIndex;
+                  const StepIcon = isCompleted ? CheckCircle2 : Icon;
+
+                  return (
+                    <li key={item.id}>
+                      <div
+                        className={`mentor-onboarding-step${isActive ? ' mentor-onboarding-step--active' : ''}${isCompleted ? ' mentor-onboarding-step--complete' : ''}${index > activeStepIndex ? ' mentor-onboarding-step--locked' : ''}`}
+                        aria-current={isActive ? 'step' : undefined}
+                        aria-disabled={index > activeStepIndex ? 'true' : undefined}
+                      >
+                        <span className="mentor-onboarding-step__number">{item.number}</span>
+                        <span className="mentor-onboarding-step__label">{item.label}</span>
+                        <span className="mentor-onboarding-step__icon" aria-hidden="true">
+                          <StepIcon size={15} strokeWidth={1.8} />
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </aside>
+
+            <section className="mentor-onboarding-card" aria-labelledby="mentor-onboarding-step-title">
+              <div className="mentor-onboarding-card__header">
+                <div className="mentor-onboarding-card__meta">
+                  <span>Etapa {currentStep.number}</span>
+                  <span>{currentStep.label}</span>
+                </div>
+                <h2 id="mentor-onboarding-step-title">{currentStep.title}</h2>
+                <p>{currentStep.description}</p>
+                <div className="mentor-onboarding-progress" role="progressbar" aria-label="Progresso do formulário" aria-valuemin="1" aria-valuemax={steps.length} aria-valuenow={activeStepIndex + 1}>
+                  <i style={{ width: `${((activeStepIndex + 1) / steps.length) * 100}%` }} />
+                </div>
+              </div>
+
+              <form className="mentor-onboarding-form" onSubmit={activeStepIndex < steps.length - 1 ? handleNext : handleSubmit} noValidate>
+                <div className="mentor-onboarding-fields">
+                  {currentStep.fields.map((field) => (
+                    <MentorOnboardingField
+                      error={errors[field.name]}
+                      field={field}
+                      key={field.name}
+                      onChange={(value) => updateValue(field.name, value)}
+                      values={values}
+                      value={values[field.name] ?? ''}
+                    />
+                  ))}
+                </div>
+
+                <div className="mentor-onboarding-actions">
+                  <button
+                    className="mentor-onboarding-back"
+                    type="button"
+                    onClick={() => goToStep(Math.max(activeStepIndex - 1, 0))}
+                    disabled={activeStepIndex === 0}
+                  >
+                    <ArrowLeft size={17} aria-hidden="true" />
+                    Voltar
+                  </button>
+
+                  {activeStepIndex < steps.length - 1 ? (
+                    <button className="mentor-onboarding-next" type="submit">
+                      Próxima etapa
+                      <ArrowRight size={17} aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <button className="mentor-onboarding-next" type="submit" disabled={submitting}>
+                      {submitting ? 'Enviando...' : 'Finalizar formulário'}
+                      {!submitting && <Check size={17} aria-hidden="true" />}
+                    </button>
+                  )}
+                </div>
+                <p className={`mentor-onboarding-sync mentor-onboarding-sync--${syncState.status}`} aria-live="polite">
+                  <span aria-hidden="true" />
+                  {syncMessage}
+                </p>
+                {submitError && <p className="mentor-onboarding-submit-error" role="alert">{submitError}</p>}
+              </form>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <footer className="mentor-onboarding-footer">
+        <div className="container mentor-onboarding-footer__content">
+          <BrandLogo />
+          <p>AI COWORK · IA trabalhando com você e para você.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function isMentorOnboardingValueEmpty(value, field) {
+  if (field.type === 'availability') {
+    return !value || typeof value !== 'object' || field.dates.some((date) => !value[date]);
+  }
+  if (field.type === 'ranking') return !Array.isArray(value) || value.length < field.limit;
+  if (Array.isArray(value)) return value.length === 0;
+  if (value && typeof value === 'object' && Array.isArray(value.selected)) return value.selected.length === 0;
+  if (value && typeof value === 'object' && typeof value.value === 'string') return !value.value.trim();
+  if (typeof value === 'number') return false;
+  return !String(value ?? '').trim();
+}
+
+function selectedOptions(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object' && Array.isArray(value.selected)) return value.selected;
+  if (value && typeof value === 'object' && typeof value.value === 'string') return [value.value];
+  if (typeof value === 'string') return [value];
+  return [];
+}
+
+function normalizeMultiOptionValue(value) {
+  if (Array.isArray(value)) return { selected: value, other: '' };
+  if (value && typeof value === 'object' && Array.isArray(value.selected)) {
+    return { selected: value.selected, other: value.other || '' };
+  }
+  return { selected: [], other: '' };
+}
+
+function isOtherOption(option) {
+  return option === 'Outro' || option === 'Outra';
+}
+
+function MentorOnboardingSubmitted() {
+  return (
+    <div className="mentor-onboarding-page">
+      <main className="mentor-onboarding-main">
+        <div className="container mentor-onboarding-submitted">
+          <h1>Obrigado por compartilhar seu ponto de partida.</h1>
+          <p>Suas respostas foram registradas. Vou usá-las para preparar os encontros e acompanhar o seu processo com mais contexto.</p>
+          <a className="mentor-onboarding-next mentor-onboarding-submitted__link" href="/">Voltar para a página principal <ArrowUpRight size={17} aria-hidden="true" /></a>
+        </div>
+      </main>
+      <footer className="mentor-onboarding-footer">
+        <div className="container mentor-onboarding-footer__content">
+          <BrandLogo />
+          <p>AI COWORK · IA trabalhando com você e para você.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+function MentorOnboardingField({ field, value, values, onChange, error }) {
+  const inputId = `mentor-field-${field.name}`;
+  const errorId = `${inputId}-error`;
+
+  if (field.type === 'radio') {
+    const selectedOption = value && typeof value === 'object' ? value.value : value;
+    const otherValue = value && typeof value === 'object' ? value.other || '' : '';
+    const otherOption = field.options.find((option) => isOtherOption(option));
+
+    return (
+      <fieldset className={`mentor-onboarding-field mentor-onboarding-field--options mentor-onboarding-field--radio${error ? ' mentor-onboarding-field--error' : ''}`} aria-describedby={error ? errorId : undefined} aria-required={field.required}>
+        <legend>{field.label}</legend>
+        {field.helper && <p className="mentor-onboarding-field__helper">{field.helper}</p>}
+        <div className="mentor-onboarding-option-list">
+          {field.options.map((option) => (
+            <label className={selectedOption === option ? 'mentor-onboarding-option mentor-onboarding-option--selected' : 'mentor-onboarding-option'} key={option}>
+              <input
+                type="radio"
+                name={field.name}
+                value={option}
+                checked={selectedOption === option}
+                onChange={() => onChange(isOtherOption(option) ? { value: option, other: otherValue } : option)}
+              />
+              <span className="mentor-onboarding-option__circle" aria-hidden="true"><Check size={12} /></span>
+              <span>{option}</span>
+            </label>
+          ))}
+        </div>
+        {otherOption && selectedOption === otherOption && (
+          <div className="mentor-onboarding-other-field">
+            <label htmlFor={`${inputId}-other`}>Descreva sua outra opção</label>
+            <input
+              id={`${inputId}-other`}
+              type="text"
+              value={otherValue}
+              placeholder="Escreva outra possibilidade..."
+              onChange={(event) => onChange({ value: otherOption, other: event.target.value })}
+            />
+          </div>
+        )}
+        {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+      </fieldset>
+    );
+  }
+
+  if (field.type === 'checkboxes') {
+    const selection = normalizeMultiOptionValue(value);
+    const selectedValues = selection.selected;
+    const otherOption = field.options.find((option) => isOtherOption(option));
+    return (
+      <fieldset className={`mentor-onboarding-field mentor-onboarding-field--options mentor-onboarding-field--checkboxes${error ? ' mentor-onboarding-field--error' : ''}`} aria-describedby={error ? errorId : undefined} aria-required={field.required}>
+        <legend>{field.label}</legend>
+        {field.helper && <p className="mentor-onboarding-field__helper">{field.helper}</p>}
+        <div className="mentor-onboarding-option-list">
+          {field.options.map((option) => {
+            const checked = selectedValues.includes(option);
+            return (
+              <label className={checked ? 'mentor-onboarding-option mentor-onboarding-option--selected' : 'mentor-onboarding-option'} key={option}>
+                <input
+                  type="checkbox"
+                  name={`${field.name}[]`}
+                  value={option}
+                  checked={checked}
+                  onChange={() => onChange({
+                    selected: checked ? selectedValues.filter((item) => item !== option) : [...selectedValues, option],
+                    other: selection.other,
+                  })}
+                />
+                <span className="mentor-onboarding-option__circle" aria-hidden="true"><Check size={12} /></span>
+                <span>{option}</span>
+              </label>
+            );
+          })}
+        </div>
+        {otherOption && selectedValues.includes(otherOption) && (
+          <div className="mentor-onboarding-other-field">
+            <label htmlFor={`${inputId}-other`}>Descreva sua outra opção</label>
+            <input
+              id={`${inputId}-other`}
+              type="text"
+              value={selection.other}
+              placeholder="Escreva outra possibilidade..."
+              onChange={(event) => onChange({ selected: selectedValues, other: event.target.value })}
+            />
+          </div>
+        )}
+        {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+      </fieldset>
+    );
+  }
+
+  if (field.type === 'ranking') {
+    const selectedValues = Array.isArray(value) ? value : [];
+    const sourceOptions = selectedOptions(values[field.sourceField]);
+    const options = sourceOptions.length > 0 ? sourceOptions : (field.options || []);
+
+    return (
+      <fieldset className={`mentor-onboarding-field mentor-onboarding-field--ranking${error ? ' mentor-onboarding-field--error' : ''}`} aria-describedby={error ? errorId : undefined} aria-required={field.required}>
+        <legend>{field.label}</legend>
+        <p className="mentor-onboarding-field__helper">Escolha as três atividades mais importantes e ordene-as da primeira para a terceira.</p>
+        <div className="mentor-onboarding-ranking-list">
+          {Array.from({ length: field.limit }, (_, index) => {
+            const currentValue = selectedValues[index] || '';
+            return (
+              <label className="mentor-onboarding-ranking" key={`${field.name}-${index}`}>
+                <span>{index + 1}º</span>
+                <select
+                  id={index === 0 ? inputId : undefined}
+                  value={currentValue}
+                  disabled={options.length === 0}
+                  onChange={(event) => {
+                    const nextValues = [...selectedValues];
+                    nextValues[index] = event.target.value;
+                    onChange(nextValues.filter(Boolean));
+                  }}
+                  aria-invalid={Boolean(error)}
+                  aria-describedby={error ? errorId : undefined}
+                >
+                  <option value="">{options.length === 0 ? 'Selecione na pergunta anterior' : 'Escolha uma atividade'}</option>
+                  {options.map((option) => (
+                    <option key={option} value={option} disabled={selectedValues.includes(option) && option !== currentValue}>{option}</option>
+                  ))}
+                </select>
+              </label>
+            );
+          })}
+        </div>
+        {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+      </fieldset>
+    );
+  }
+
+  if (field.type === 'scale') {
+    return (
+      <fieldset className={`mentor-onboarding-field mentor-onboarding-field--scale${error ? ' mentor-onboarding-field--error' : ''}`} aria-describedby={error ? errorId : undefined} aria-required={field.required}>
+        <legend>{field.label}</legend>
+        <div className="mentor-onboarding-scale-list">
+          {Array.from({ length: field.max - field.min + 1 }, (_, index) => {
+            const scaleValue = field.min + index;
+            const selected = value === scaleValue;
+            return (
+              <button
+                className={selected ? 'mentor-onboarding-scale mentor-onboarding-scale--selected' : 'mentor-onboarding-scale'}
+                type="button"
+                aria-pressed={selected}
+                key={scaleValue}
+                onClick={() => onChange(scaleValue)}
+              >
+                <strong>{scaleValue}</strong>
+                <span>{field.scaleLabels[scaleValue]}</span>
+              </button>
+            );
+          })}
+        </div>
+        {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+      </fieldset>
+    );
+  }
+
+  if (field.type === 'availability') {
+    const selectedValues = value && typeof value === 'object' ? value : {};
+    return (
+      <fieldset className={`mentor-onboarding-field mentor-onboarding-field--availability${error ? ' mentor-onboarding-field--error' : ''}`} aria-describedby={error ? errorId : undefined} aria-required={field.required}>
+        <legend>{field.label}</legend>
+        <div className="mentor-onboarding-availability">
+          {field.dates.map((date) => (
+            <fieldset className="mentor-onboarding-availability__row" key={date}>
+              <legend>{date}</legend>
+              <div className="mentor-onboarding-availability__options">
+                {field.options.map((option) => {
+                  const selected = selectedValues[date] === option;
+                  return (
+                    <label className={selected ? 'mentor-onboarding-option mentor-onboarding-option--selected' : 'mentor-onboarding-option'} key={option}>
+                      <input
+                        type="radio"
+                        name={`${field.name}-${date}`}
+                        value={option}
+                        checked={selected}
+                        onChange={() => onChange({ ...selectedValues, [date]: option })}
+                      />
+                      <span className="mentor-onboarding-option__circle" aria-hidden="true"><Check size={12} /></span>
+                      <span>{option}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+        </div>
+        {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+      </fieldset>
+    );
+  }
+
+  return (
+    <div className={`mentor-onboarding-field${error ? ' mentor-onboarding-field--error' : ''}`}>
+      {field.type === 'textarea' ? (
+        <>
+          <div className="mentor-onboarding-field__label-row">
+            <label htmlFor={inputId}>{field.label}</label>
+            <DictationButton value={value} onChange={onChange} />
+          </div>
+          {field.helper && <p className="mentor-onboarding-field__helper">{field.helper}</p>}
+          <textarea
+            id={inputId}
+            rows={field.rows || 5}
+            value={value}
+            placeholder={field.placeholder}
+            onChange={(event) => onChange(event.target.value)}
+            aria-invalid={Boolean(error)}
+            aria-required={field.required}
+            aria-describedby={error ? errorId : undefined}
+          />
+        </>
+      ) : (
+        <>
+          <label htmlFor={inputId}>{field.label}</label>
+          {field.helper && <p className="mentor-onboarding-field__helper">{field.helper}</p>}
+          <input
+            id={inputId}
+            type={field.type || 'text'}
+            value={value}
+            placeholder={field.placeholder}
+            autoComplete={field.autoComplete}
+            inputMode={field.inputMode}
+            maxLength={field.maxLength}
+            onChange={(event) => onChange(event.target.value)}
+            aria-invalid={Boolean(error)}
+            aria-required={field.required}
+            aria-describedby={error ? errorId : undefined}
+          />
+        </>
+      )}
+      {error && <span className="mentor-onboarding-field-error" id={errorId}>{error}</span>}
+    </div>
+  );
+}
+
+function DictationButton({ value, onChange }) {
+  const recognitionRef = useRef(null);
+  const [listening, setListening] = useState(false);
+  const Recognition = typeof window !== 'undefined'
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    : null;
+  const supported = Boolean(Recognition);
+
+  useEffect(() => () => recognitionRef.current?.abort(), []);
+
+  const toggleDictation = () => {
+    if (!supported) return;
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript || '')
+        .join(' ')
+        .trim();
+      if (!transcript) return;
+      const separator = String(value || '').trim() ? ' ' : '';
+      onChange(`${value || ''}${separator}${transcript}`);
+    };
+    recognition.onend = () => {
+      recognitionRef.current = null;
+      setListening(false);
+    };
+    recognition.onerror = () => {
+      recognitionRef.current = null;
+      setListening(false);
+    };
+    recognitionRef.current = recognition;
+    setListening(true);
+
+    try {
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setListening(false);
+    }
+  };
+
+  return (
+    <span className="mentor-onboarding-dictation-control">
+      <button
+        className={`mentor-onboarding-dictation${listening ? ' mentor-onboarding-dictation--active' : ''}`}
+        type="button"
+        onClick={toggleDictation}
+        disabled={!supported}
+        data-tooltip={supported ? (listening ? 'Parar ditado' : 'Ditar resposta') : 'Ditado indisponível neste navegador'}
+        aria-label={supported ? (listening ? 'Parar ditado' : 'Iniciar ditado') : 'Ditado não disponível neste navegador'}
+      >
+        {listening ? <MicOff size={15} aria-hidden="true" /> : <Mic size={15} aria-hidden="true" />}
+      </button>
+      {listening && (
+        <span className="mentor-onboarding-dictation-waveform" role="status" aria-label="Ditado ativo">
+          {Array.from({ length: 12 }, (_, index) => <i key={index} />)}
+        </span>
+      )}
+    </span>
   );
 }
 
