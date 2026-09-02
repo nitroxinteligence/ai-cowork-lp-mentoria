@@ -3,7 +3,7 @@ export const profile = {
   role: 'AI Product & Automation Engineer',
   location: 'Recife, Pernambuco',
   workModel: 'Remoto · PJ',
-  email: 'contato@falamateus.com.br',
+  email: 'matspaz.dev@gmail.com',
   github: 'https://github.com/nitroxinteligence',
   linkedin: 'https://www.linkedin.com/in/mateus-paz-6206a5413/',
   portfolio: 'https://crl.falamateus.com.br',
