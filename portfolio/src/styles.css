@@ -1259,7 +1259,7 @@ a:hover .arrow--down {
   font-size: clamp(3rem, 6vw, 7.5rem);
 }
 
-.contact__layout > div:first-child > p {
+.contact__intro {
   max-width: 720px;
   margin: 42px 0 0;
   color: #bdbdbd;
@@ -1714,7 +1714,7 @@ a:hover .arrow--down {
   .hero__lead,
   .section-intro--work > p,
   .about__body,
-  .contact__layout > div:first-child > p {
+  .contact__intro {
     color: var(--white);
   }
 }

@@ -437,7 +437,7 @@ function ContactSection() {
         <div>
           <SectionMarker number="08" light>Contato</SectionMarker>
           <h2 id="contact-title">Se o problema ainda está confuso, posso ajudar a dar forma e construir o primeiro sistema.</h2>
-          <p>Procuro oportunidades remotas como AI Product &amp; Automation Engineer em startups e equipes de produto.</p>
+          <p className="contact__intro">Procuro oportunidades remotas como AI Product &amp; Automation Engineer em startups e equipes de produto.</p>
         </div>
         <div className="contact__actions">
           <div className="contact-email">
