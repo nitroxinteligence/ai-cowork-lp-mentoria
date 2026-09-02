@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#050505"/>
+  <path d="M0 86h1200M0 544h1200M86 0v630M1114 0v630" stroke="#333"/>
+  <path d="M86 406h1028" stroke="#333"/>
+  <rect x="86" y="86" width="60" height="60" fill="#fff"/>
+  <path d="M100 132v-32h8l9 16 9-16h8v32h-8v-18l-9 15h-1l-8-15v18h-8Z" fill="#050505"/>
+  <text x="174" y="126" fill="#fff" font-family="Arial, sans-serif" font-size="28" font-weight="600">MATHEUS DA PAZ</text>
+  <text x="86" y="248" fill="#fff" font-family="Arial, sans-serif" font-size="74" font-weight="500" letter-spacing="-3">AI Product &amp;</text>
+  <text x="86" y="330" fill="#fff" font-family="Arial, sans-serif" font-size="74" font-weight="500" letter-spacing="-3">Automation Engineer</text>
+  <text x="86" y="461" fill="#b8b8b8" font-family="Courier New, monospace" font-size="22">MVPs · AGENTES · INTEGRAÇÕES · HANDOFF</text>
+  <text x="86" y="588" fill="#8c8c8c" font-family="Courier New, monospace" font-size="18">RECIFE, BRASIL · REMOTO · PJ</text>
+  <text x="1114" y="588" fill="#8c8c8c" font-family="Courier New, monospace" font-size="18" text-anchor="end">CRL.FALAMATEUS.COM.BR</text>
+</svg>

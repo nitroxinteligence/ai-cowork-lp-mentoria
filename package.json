@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:portfolio": "vite --config portfolio/vite.config.js",
+    "build:portfolio": "vite build --config portfolio/vite.config.js",
+    "preview:portfolio": "vite preview --config portfolio/vite.config.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

@@ -1,7 +1,10 @@
 node_modules/
 dist/
+dist-portfolio/
+.wrangler/
 .serena/
 .playwright-cli/
+/output/playwright/
 .DS_Store
 **/.DS_Store
 .env
