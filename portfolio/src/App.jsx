@@ -374,7 +374,9 @@ function AboutSection() {
         </div>
         <figure className="portrait">
           <img
-            src="/images/mateus-paz-professional-v1.jpg"
+            src="/images/mateus-paz-professional-v1.webp"
+            srcSet="/images/mateus-paz-professional-v1-480.webp 480w, /images/mateus-paz-professional-v1.webp 1024w"
+            sizes="(max-width: 472px) calc(100vw - 32px), 440px"
             width="1024"
             height="1536"
             alt="Mateus Paz em um escritório, usando camisa preta e óculos"
