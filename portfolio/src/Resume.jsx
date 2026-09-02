@@ -22,7 +22,7 @@ function ResumeHeader() {
         <span>{profile.location} · Remoto · PJ</span>
         <a href={`mailto:${profile.email}`}>{profile.email}</a>
         <a href={profile.github}>github.com/nitroxinteligence</a>
-        <a href={profile.portfolio}>crl.falamateus.com.br</a>
+        <a href={profile.linkedin}>linkedin.com/in/mateus-paz-6206a5413</a>
       </address>
     </header>
   );
@@ -102,7 +102,7 @@ function ResumeEducation() {
         <h2 id="resume-education-title">Formação</h2>
       </div>
       <div className="resume-section__content resume-education">
-        <h3>{resume.education.course} — {resume.education.institution}</h3>
+        <h3>{resume.education.course}, {resume.education.institution}</h3>
         <p>{resume.education.period} · {resume.education.note}</p>
       </div>
     </section>
@@ -130,8 +130,7 @@ export default function Resume() {
     <>
       <a className="skip-link" href="#resume-main">Pular para o currículo</a>
       <nav className="resume-nav" aria-label="Navegação do currículo">
-        <a href="/" aria-label="Voltar ao portfólio de Matheus da Paz">← Portfólio</a>
-        <span>Versão HTML acessível</span>
+        <a href="/" aria-label="Voltar ao portfólio de Mateus Paz">← Portfólio</a>
         <PrintButton />
       </nav>
       <main className="resume-page" id="resume-main" tabIndex="-1">

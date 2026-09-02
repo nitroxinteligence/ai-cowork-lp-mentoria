@@ -1,4 +1,4 @@
-# Matheus da Paz — portfolio e currículo
+# Mateus Paz: portfólio e currículo
 
 Bundle independente do site principal do AI COWORK. O código vive em `portfolio/`, gera `dist-portfolio/` e deve ser publicado no projeto Cloudflare Pages `matheus-da-paz-crl` para atender `crl.falamateus.com.br`.
 
@@ -14,5 +14,5 @@ O build padrão (`npm run build`) continua gerando apenas a landing do AI COWORK
 
 ## Rotas
 
-- `/` — portfólio;
-- `/curriculo/` — currículo HTML acessível e imprimível pelo navegador.
+- `/`: portfólio;
+- `/curriculo/`: currículo HTML acessível e imprimível pelo navegador.
