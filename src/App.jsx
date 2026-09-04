@@ -3,12 +3,15 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  Bot,
   BriefcaseBusiness,
   CalendarDays,
   Check,
   CheckCircle2,
+  CircleDollarSign,
   Clock3,
   Factory,
+  FileText,
   Layers3,
   Megaphone,
   Mic,
@@ -21,11 +24,14 @@ import {
   Target,
   UserCog,
   Video,
+  Wrench,
   Workflow,
   X,
   Zap,
 } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import PixelDissolveMarquee from './components/PixelDissolveMarquee';
+import AnimatedDirectionTitle from './components/AnimatedDirectionTitle';
 import {
   flushLeadDraft,
   getOrCreateLeadDraft,
@@ -48,7 +54,14 @@ const HERO_VIDEO_ENABLED = false;
 const THANK_YOU_PATH = '/parabens';
 const MENTOR_ONBOARDING_PATH = '/mentorado';
 const THANK_YOU_ACCESS_KEY = 'ai-cowork:thank-you-access:v1';
-const WHATSAPP_MESSAGE = 'Olá! Preenchi minha candidatura para a primeira turma do AI COWORK e gostaria de receber mais informações sobre os próximos passos.';
+const ACTIVE_COHORT = Object.freeze({
+  label: 'segunda turma',
+  labelUppercase: 'SEGUNDA TURMA',
+  spots: 15,
+  vacanciesCloseAt: '30 de setembro',
+  vacanciesCloseAtUppercase: '30 DE SETEMBRO',
+});
+const WHATSAPP_MESSAGE = `Olá! Preenchi o formulário para uma vaga na ${ACTIVE_COHORT.label} do AI COWORK e gostaria de receber mais informações sobre os próximos passos.`;
 const WHATSAPP_URL = `https://wa.me/5581982986181?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
 function normalizePathname(pathname) {
@@ -85,42 +98,42 @@ function resolvePathname() {
 const sessions = [
   {
     code: 'S1',
-    date: '10 SET',
+    date: '10 OUT',
     title: 'Da conversa solta à direção profissional',
     body: 'Você entende o que a IA já consegue fazer, aprende a escolher o modo certo para cada trabalho e começa a dirigir com objetivo, contexto, critérios e limites.',
     icon: Target,
   },
   {
     code: 'S2',
-    date: '20 SET',
+    date: '20 OUT',
     title: 'Especialistas digitais',
     body: 'Você aprende a configurar papéis com função, competência, fontes, processo e padrão de qualidade ligados ao seu trabalho real.',
     icon: UserCog,
   },
   {
     code: 'S3',
-    date: '30 SET',
+    date: '30 OUT',
     title: 'Time digital e produção em cadeia',
     body: 'Você coordena especialistas para que pesquisa, análise, estratégia, criação e revisão deixem de acontecer em conversas desconectadas.',
     icon: Workflow,
   },
   {
     code: 'S4',
-    date: '10 OUT',
+    date: '10 NOV',
     title: 'Automação e delegação',
     body: 'Você diferencia automação comum, etapa com IA e agente. Também aprende a conectar tarefas recorrentes a ferramentas autorizadas.',
     icon: Zap,
   },
   {
     code: 'S5',
-    date: '20 OUT',
+    date: '20 NOV',
     title: 'Construção com IA',
     body: 'Você cria uma página, apresentação, dashboard, protótipo, calculadora, pequeno aplicativo ou outro ativo útil e entende os limites.',
     icon: PanelsTopLeft,
   },
   {
     code: 'S6',
-    date: '30 OUT',
+    date: '30 NOV',
     title: 'Seu sistema AI COWORK',
     body: 'Você organiza especialistas, fluxos e ativos, define o que pode ser assistido ou automatizado e sai com um plano de expansão.',
     icon: RefreshCcw,
@@ -161,12 +174,12 @@ const trajectory = [
 ];
 
 const cohortDates = [
-  { day: '10', month: 'SET', code: 'S1' },
-  { day: '20', month: 'SET', code: 'S2' },
-  { day: '30', month: 'SET', code: 'S3' },
-  { day: '10', month: 'OUT', code: 'S4' },
-  { day: '20', month: 'OUT', code: 'S5' },
-  { day: '30', month: 'OUT', code: 'S6' },
+  { day: '10', month: 'OUT', code: 'S1' },
+  { day: '20', month: 'OUT', code: 'S2' },
+  { day: '30', month: 'OUT', code: 'S3' },
+  { day: '10', month: 'NOV', code: 'S4' },
+  { day: '20', month: 'NOV', code: 'S5' },
+  { day: '30', month: 'NOV', code: 'S6' },
 ];
 
 const faqs = [
@@ -188,7 +201,7 @@ const faqs = [
   },
   {
     question: 'Como funcionam os encontros e as gravações?',
-    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados a cada 10 dias entre 10 de setembro e 30 de outubro. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
+    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados a cada 10 dias entre 10 de outubro e 30 de novembro. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
   },
   {
     question: 'Haverá acompanhamento entre os encontros?',
@@ -199,8 +212,8 @@ const faqs = [
     answer: 'Não. Eu vou ensinar, demonstrar, orientar e corrigir. A proposta é que você aprenda a dirigir e manter sua própria estrutura de trabalho com IA, em vez de depender de uma operação feita por terceiros.',
   },
   {
-    question: 'Como funcionam candidatura, investimento e garantia?',
-    answer: 'As candidaturas ficam abertas até 30 de agosto. Depois da análise, os perfis aderentes serão chamados no WhatsApp para conhecer o investimento e as condições. A participação será formalizada por contrato, com certificado e garantia de sete dias.',
+    question: 'Como funcionam as vagas, o investimento e a garantia?',
+    answer: `As vagas ficam abertas até ${ACTIVE_COHORT.vacanciesCloseAt}. Depois da análise, os perfis aderentes serão chamados no WhatsApp para conhecer o investimento e as condições. A participação será formalizada por contrato, com certificado e garantia de sete dias.`,
   },
 ];
 
@@ -270,7 +283,7 @@ const outcomes = [
   },
 ];
 
-const founderBenefits = [
+const cohortBenefits = [
   '6 encontros online e ao vivo',
   'orientação direta comigo',
   'laboratórios aplicados aos trabalhos da turma',
@@ -283,6 +296,15 @@ const founderBenefits = [
   'meus agentes, minhas skills, minhas ferramentas',
   'área de membros com materiais e gravações',
   'R$ 500 de cashback',
+];
+
+const cohortVisualCards = [
+  { label: 'Área de Membros', icon: PanelsTopLeft },
+  { label: 'Cashback de R$ 500', icon: CircleDollarSign },
+  { label: 'Agentes de IA', icon: Bot },
+  { label: 'Tools & Skills', icon: Wrench },
+  { label: 'Especialistas Digitais', icon: UserCog, compact: true },
+  { label: 'Materiais Extras', icon: FileText },
 ];
 
 const sessionVideos = [
@@ -328,7 +350,7 @@ const steps = [
       },
       {
         name: 'investment',
-        label: 'Caso sua candidatura seja aprovada, você está preparado para investir em uma mentoria profissional?',
+        label: 'Caso você seja aprovado para uma vaga, está preparado para investir em uma mentoria profissional?',
         type: 'radio',
         options: ['Sim', 'Preciso entender as condições', 'Não neste momento'],
       },
@@ -355,7 +377,7 @@ function formatBrazilianPhone(value) {
 function App() {
   const [applicationOpen, setApplicationOpen] = useState(false);
   const [floatingCtaVisible, setFloatingCtaVisible] = useState(false);
-  const [founderBenefitsVisible, setFounderBenefitsVisible] = useState(false);
+  const [cohortBenefitsVisible, setCohortBenefitsVisible] = useState(false);
   const [pathname, setPathname] = useState(resolvePathname);
   const applicationTriggerRef = useRef(null);
   const restoreApplicationFocusRef = useRef(false);
@@ -414,14 +436,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const founderSection = document.getElementById('turma-fundadora');
-    if (!founderSection) return undefined;
+    const cohortBenefitsSection = document.getElementById('beneficios-da-turma');
+    if (!cohortBenefitsSection) return undefined;
 
     const observer = new IntersectionObserver(([entry]) => {
-      setFounderBenefitsVisible(entry.isIntersecting);
+      setCohortBenefitsVisible(entry.isIntersecting);
     });
 
-    observer.observe(founderSection);
+    observer.observe(cohortBenefitsSection);
     return () => observer.disconnect();
   }, []);
 
@@ -447,9 +469,10 @@ function App() {
 
   return (
     <div className="site-shell">
+      <CohortAvailabilityBar />
       <Hero onApply={openApplication} ctaShimmerActive={!floatingCtaVisible} />
       <AnimatePresence>
-        {floatingCtaVisible && !founderBenefitsVisible && <FloatingApplicationCTA onApply={openApplication} />}
+        {floatingCtaVisible && !cohortBenefitsVisible && <FloatingApplicationCTA onApply={openApplication} />}
       </AnimatePresence>
       <main>
         <ManualProcessSection />
@@ -458,7 +481,7 @@ function App() {
         <ChangeDetailsSection />
         <ExperienceSection />
         <ApplicationSection />
-        <FounderBenefitsSection onApply={openApplication} />
+        <CohortBenefitsSection onApply={openApplication} />
         <FAQSection />
       </main>
       <Footer />
@@ -480,13 +503,24 @@ function App() {
   );
 }
 
+function CohortAvailabilityBar() {
+  return (
+    <aside className="cohort-availability-bar" aria-label="Status das turmas">
+      <p>
+        <strong>PRIMEIRA TURMA FECHADA.</strong>
+        <span>VAGAS ABERTAS PARA A SEGUNDA TURMA.</span>
+      </p>
+    </aside>
+  );
+}
+
 function FloatingApplicationCTA({ onApply }) {
   const reduceMotion = useReducedMotion();
 
   return (
     <motion.aside
       className="application-cta application-cta--floating"
-      aria-label="Candidatura"
+      aria-label={`Vagas da ${ACTIVE_COHORT.label}`}
       initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
@@ -532,8 +566,8 @@ function ApplicationCTAButton({ onApply, shimmerActive = false }) {
         <ArrowUpRight className="application-cta__hover-arrow" size={18} strokeWidth={2} aria-hidden="true" />
       </span>
       <span className="application-cta__details" aria-hidden="true">
-        <span>15 VAGAS PRIMEIRA TURMA</span>
-        <span>ABERTO ATÉ 30 DE AGOSTO</span>
+        <span>{ACTIVE_COHORT.spots} VAGAS {ACTIVE_COHORT.labelUppercase}</span>
+        <span>ABERTO ATÉ {ACTIVE_COHORT.vacanciesCloseAtUppercase}</span>
       </span>
     </button>
   );
@@ -547,25 +581,25 @@ function Hero({ onApply, ctaShimmerActive }) {
       <picture className="hero__media" aria-hidden="true">
         <source
           media="(max-width: 480px)"
-          srcSet="/images/hero/ai-cowork-hero-mobile-1080x1920.webp"
+          srcSet="/images/hero/ai-cowork-hero-refined-v9-mobile.webp"
         />
         <source
           media="(max-width: 1020px)"
-          srcSet="/images/hero/ai-cowork-hero-tablet-1536x2048.webp"
+          srcSet="/images/hero/ai-cowork-hero-refined-v9-tablet.webp"
         />
         <source
           media="(max-width: 1440px)"
-          srcSet="/images/hero/ai-cowork-hero-laptop-1440x900.webp"
+          srcSet="/images/hero/ai-cowork-hero-refined-v9-laptop.webp"
         />
         <source
           media="(max-width: 1920px)"
-          srcSet="/images/hero/ai-cowork-hero-desktop-1920x1080.webp"
+          srcSet="/images/hero/ai-cowork-hero-refined-v9-desktop.webp"
         />
         <img
-          src="/images/hero/ai-cowork-hero-ultrawide-2560x1080.webp"
+          src="/images/hero/ai-cowork-hero-refined-v9-ultrawide.webp"
           alt=""
-          width="2560"
-          height="1080"
+          width="1672"
+          height="706"
           loading="eager"
           fetchPriority="high"
           decoding="async"
@@ -580,7 +614,7 @@ function Hero({ onApply, ctaShimmerActive }) {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <BrandLogo className="hero__brand" />
-          <div className="hero__facts" aria-label="Informações da primeira turma">
+          <div className="hero__facts" aria-label={`Informações da ${ACTIVE_COHORT.label}`}>
             <Clock3 size={17} aria-hidden="true" />
             <span className="hero__facts-text">
               <span>6 ENCONTROS</span>
@@ -904,11 +938,7 @@ function ExperienceSection() {
     <>
       <section className="section section--experience" id="experiencia">
         <div className="container experience-statement">
-          <h2>
-            <span className="experience-statement__line">FERRAMENTA É COMMODITY.</span>
-            <span className="experience-statement__line mesh-text">SABER CONDUZIR A IA</span>
-            <span className="experience-statement__line mesh-text">É A CHAVE-MESTRA.</span>
-          </h2>
+          <AnimatedDirectionTitle />
         </div>
       </section>
       <CohortSection />
@@ -942,8 +972,8 @@ function CohortSection() {
                 <dd>A definir</dd>
               </div>
               <div>
-                <dt><CalendarDays size={18} strokeWidth={1.7} aria-hidden="true" /><span>Candidaturas</span></dt>
-                <dd>Até 30 de agosto</dd>
+                <dt><CalendarDays size={18} strokeWidth={1.7} aria-hidden="true" /><span>Vagas</span></dt>
+                <dd>Até {ACTIVE_COHORT.vacanciesCloseAt}</dd>
               </div>
             </dl>
           </div>
@@ -1033,53 +1063,57 @@ function ApplicationSection() {
     <section className="section section--application" id="candidatura">
       <div className="container application-grid">
         <div>
-          <h2>A <span className="mesh-text mesh-text--on-dark">primeira turma</span> terá 15 vagas.</h2>
+          <h2>A <span className="mesh-text mesh-text--on-dark">segunda turma</span> terá {ACTIVE_COHORT.spots} vagas.</h2>
         </div>
         <div className="application-copy prose">
           <p>Escolhi uma turma pequena porque quero acompanhar de perto como cada participante está usando a IA, onde está travando e quais funções fazem mais sentido para o seu trabalho.</p>
           <p>Preencher o formulário não garante a vaga. Vamos analisar a aderência ao programa, a disponibilidade para participar e a composição da turma.</p>
-          <p>Se sua candidatura fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
+          <p>Se o seu perfil fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
         </div>
       </div>
     </section>
   );
 }
 
-function FounderBenefitsSection({ onApply }) {
+function CohortBenefitsSection({ onApply }) {
   return (
-    <section className="section founder-benefits-section" id="turma-fundadora" aria-labelledby="founder-benefits-title">
-      <div className="container founder-benefits-section__content">
-        <h2 id="founder-benefits-title">Tudo o que acompanha a <span className="mesh-text mesh-text--on-dark">Turma Fundadora</span></h2>
+    <section className="section cohort-benefits-section" id="beneficios-da-turma" aria-labelledby="cohort-benefits-title">
+      <div className="container cohort-benefits-section__content">
+        <h2 id="cohort-benefits-title">Participe da <span className="mesh-text mesh-text--on-dark">segunda turma</span></h2>
 
-        <picture className="founder-benefits-section__visual">
-          <source
-            media="(min-width: 1800px)"
-            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-ultrawide-2560x1440.webp"
-          />
-          <source
-            media="(min-width: 1024px)"
-            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-desktop-2400x1600.webp"
-          />
-          <source
-            media="(min-width: 761px)"
-            srcSet="/images/founder-cohort/ai-cowork-founder-kit-approved-tablet-2048x1536.webp"
-          />
+        <div className="cohort-benefits-section__visual">
+          <PixelDissolveMarquee>
+            <div className="cohort-benefits-marquee__track">
+              {[0, 1].map((groupIndex) => (
+                <div className="cohort-benefits-marquee__group" key={groupIndex}>
+                  {cohortVisualCards.map(({ label, icon: Icon, compact = false }) => (
+                    <article className={`cohort-visual-card${compact ? ' cohort-visual-card--compact' : ''}`} key={`${groupIndex}-${label}`}>
+                      <Icon size={34} strokeWidth={1.55} />
+                      <span>{label}</span>
+                    </article>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </PixelDissolveMarquee>
           <img
-            src="/images/founder-cohort/ai-cowork-founder-kit-approved-mobile-1600x1350.webp"
-            alt="Composição dos materiais e da área de membros da Turma Fundadora do AI COWORK"
-            width="1600"
-            height="1350"
-            sizes="(min-width: 1800px) 820px, (min-width: 1024px) 680px, (min-width: 761px) calc(100vw - 6rem), 94vw"
+            className="cohort-benefits-section__portrait"
+            src="/images/cohort/mateus-paz-executive-crossed-arms-v1.png"
+            alt="Mateus Paz em traje executivo, de braços cruzados"
+            width="900"
+            height="1024"
+            sizes="(min-width: 1024px) 660px, 72vw"
             loading="lazy"
             decoding="async"
           />
-        </picture>
+        </div>
 
-        <div className="founder-benefits-card">
+        <div className="cohort-benefits-card">
+          <h3 className="cohort-benefits-card__title">Tudo o que acompanha:</h3>
           <ul>
-            {founderBenefits.map((benefit) => (
+            {cohortBenefits.map((benefit) => (
               <li key={benefit}>
-                <span className="founder-benefits-card__check" aria-hidden="true">
+                <span className="cohort-benefits-card__check" aria-hidden="true">
                   <CheckCircle2 size={19} strokeWidth={1.8} />
                 </span>
                 <span>{benefit}</span>
@@ -1087,7 +1121,7 @@ function FounderBenefitsSection({ onApply }) {
             ))}
           </ul>
 
-          <button className="founder-benefits-card__cta" type="button" onClick={onApply}>
+          <button className="cohort-benefits-card__cta" type="button" onClick={onApply}>
             <span>QUERO UMA VAGA</span>
             <ArrowUpRight size={20} aria-hidden="true" />
           </button>
@@ -1856,7 +1890,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
       await submitLeadApplication(draft);
       onSubmitted(draft.id);
     } catch (error) {
-      setSubmitError(error.message || 'Não foi possível enviar a candidatura. Tente novamente.');
+      setSubmitError(error.message || 'Não foi possível enviar o formulário. Tente novamente.');
     } finally {
       setSubmitting(false);
     }
@@ -1869,7 +1903,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
       : 'Seu progresso será salvo automaticamente.',
     offline: 'Sem internet — progresso salvo neste dispositivo.',
     saved: 'Progresso salvo.',
-    submitting: 'Enviando candidatura...',
+    submitting: 'Enviando formulário...',
     syncing: 'Salvando...',
   }[syncState.status] || 'Seu progresso será salvo automaticamente.';
 
@@ -1885,7 +1919,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
         className="application-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Candidatura para o AI COWORK"
+        aria-label={`Formulário para uma vaga na ${ACTIVE_COHORT.label} do AI COWORK`}
         ref={dialogRef}
         tabIndex={-1}
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}
@@ -1893,7 +1927,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
         exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 22, scale: 0.985 }}
         transition={{ type: 'spring', bounce: 0, duration: 0.38 }}
       >
-        <button className="modal-close" onClick={onClose} type="button" aria-label="Fechar candidatura">
+        <button className="modal-close" onClick={onClose} type="button" aria-label="Fechar formulário">
           <X size={21} />
         </button>
 
@@ -1945,7 +1979,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
                   </button>
                 ) : (
                   <button className="form-next" type="submit" disabled={submitting}>
-                    <span>{submitting ? 'Enviando...' : 'Aplicar para uma das 15 vagas'}</span>
+                    <span>{submitting ? 'Enviando...' : `Solicitar uma das ${ACTIVE_COHORT.spots} vagas`}</span>
                     <ArrowRight className="form-next__hover-arrow" size={17} aria-hidden="true" />
                   </button>
                 )}
@@ -2019,8 +2053,8 @@ function ThankYouPage() {
           Parabéns por tomar essa decisão extremamente importante na sua carreira pessoal e profissional.
         </h1>
         <div className="thank-you-page__copy">
-          <p>Minha equipe vai analisar suas respostas e, caso exista aderência com a proposta da primeira turma, entraremos em contato pelo WhatsApp ou pelo e-mail informado.</p>
-          <p>A candidatura não garante uma vaga. A entrada depende da aderência ao programa, da disponibilidade para participar e das 15 vagas da turma.</p>
+          <p>Minha equipe vai analisar suas respostas e, caso exista aderência com a proposta da segunda turma, entraremos em contato pelo WhatsApp ou pelo e-mail informado.</p>
+          <p>O envio do formulário não garante uma vaga. A entrada depende da aderência ao programa, da disponibilidade para participar e das {ACTIVE_COHORT.spots} vagas da turma.</p>
           <strong>Fique atento às mensagens nos próximos dias.</strong>
         </div>
         <a className="thank-you-page__cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
