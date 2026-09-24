@@ -54,14 +54,8 @@ const HERO_VIDEO_ENABLED = false;
 const THANK_YOU_PATH = '/parabens';
 const MENTOR_ONBOARDING_PATH = '/mentorado';
 const THANK_YOU_ACCESS_KEY = 'ai-cowork:thank-you-access:v1';
-const ACTIVE_COHORT = Object.freeze({
-  label: 'segunda turma',
-  labelUppercase: 'SEGUNDA TURMA',
-  spots: 15,
-  vacanciesCloseAt: '30 de setembro',
-  vacanciesCloseAtUppercase: '30 DE SETEMBRO',
-});
-const WHATSAPP_MESSAGE = `Olá! Preenchi o formulário para uma vaga na ${ACTIVE_COHORT.label} do AI COWORK e gostaria de receber mais informações sobre os próximos passos.`;
+const NEXT_COHORT_MONTH = 'OUTUBRO';
+const WHATSAPP_MESSAGE = 'Olá! Entrei na lista de espera do AI COWORK e gostaria de receber mais informações sobre a próxima turma.';
 const WHATSAPP_URL = `https://wa.me/5581982986181?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
 function normalizePathname(pathname) {
@@ -98,42 +92,42 @@ function resolvePathname() {
 const sessions = [
   {
     code: 'S1',
-    date: '10 OUT',
+    stage: 'ENCONTRO 1',
     title: 'Da conversa solta à direção profissional',
     body: 'Você entende o que a IA já consegue fazer, aprende a escolher o modo certo para cada trabalho e começa a dirigir com objetivo, contexto, critérios e limites.',
     icon: Target,
   },
   {
     code: 'S2',
-    date: '20 OUT',
+    stage: 'ENCONTRO 2',
     title: 'Especialistas digitais',
     body: 'Você aprende a configurar papéis com função, competência, fontes, processo e padrão de qualidade ligados ao seu trabalho real.',
     icon: UserCog,
   },
   {
     code: 'S3',
-    date: '30 OUT',
+    stage: 'ENCONTRO 3',
     title: 'Time digital e produção em cadeia',
     body: 'Você coordena especialistas para que pesquisa, análise, estratégia, criação e revisão deixem de acontecer em conversas desconectadas.',
     icon: Workflow,
   },
   {
     code: 'S4',
-    date: '10 NOV',
+    stage: 'ENCONTRO 4',
     title: 'Automação e delegação',
     body: 'Você diferencia automação comum, etapa com IA e agente. Também aprende a conectar tarefas recorrentes a ferramentas autorizadas.',
     icon: Zap,
   },
   {
     code: 'S5',
-    date: '20 NOV',
+    stage: 'ENCONTRO 5',
     title: 'Construção com IA',
     body: 'Você cria uma página, apresentação, dashboard, protótipo, calculadora, pequeno aplicativo ou outro ativo útil e entende os limites.',
     icon: PanelsTopLeft,
   },
   {
     code: 'S6',
-    date: '30 NOV',
+    stage: 'ENCONTRO 6',
     title: 'Seu sistema AI COWORK',
     body: 'Você organiza especialistas, fluxos e ativos, define o que pode ser assistido ou automatizado e sai com um plano de expansão.',
     icon: RefreshCcw,
@@ -173,14 +167,7 @@ const trajectory = [
   },
 ];
 
-const cohortDates = [
-  { day: '10', month: 'OUT', code: 'S1' },
-  { day: '20', month: 'OUT', code: 'S2' },
-  { day: '30', month: 'OUT', code: 'S3' },
-  { day: '10', month: 'NOV', code: 'S4' },
-  { day: '20', month: 'NOV', code: 'S5' },
-  { day: '30', month: 'NOV', code: 'S6' },
-];
+const cohortSessions = ['01', '02', '03', '04', '05', '06'];
 
 const faqs = [
   {
@@ -201,7 +188,7 @@ const faqs = [
   },
   {
     question: 'Como funcionam os encontros e as gravações?',
-    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados a cada 10 dias entre 10 de outubro e 30 de novembro. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
+    answer: 'Serão seis encontros ao vivo pelo Google Meet, com duas horas cada, realizados a cada 10 dias. O calendário da próxima turma será informado quando as vagas abrirem. As gravações ficarão disponíveis por um ano. Se você perder um encontro, deverá acompanhar a gravação antes da sessão seguinte.',
   },
   {
     question: 'Haverá acompanhamento entre os encontros?',
@@ -213,7 +200,7 @@ const faqs = [
   },
   {
     question: 'Como funcionam as vagas, o investimento e a garantia?',
-    answer: `As vagas ficam abertas até ${ACTIVE_COHORT.vacanciesCloseAt}. Depois da análise, os perfis aderentes serão chamados no WhatsApp para conhecer o investimento e as condições. A participação será formalizada por contrato, com certificado e garantia de sete dias.`,
+    answer: `VAGAS ENCERRADAS. Você pode entrar na lista de espera pelo formulário. A próxima turma deve abrir em ${NEXT_COHORT_MONTH}. Quando as vagas abrirem, os perfis aderentes serão chamados no WhatsApp para conhecer o investimento e as condições. A participação será formalizada por contrato, com certificado e garantia de sete dias.`,
   },
 ];
 
@@ -350,7 +337,7 @@ const steps = [
       },
       {
         name: 'investment',
-        label: 'Caso você seja aprovado para uma vaga, está preparado para investir em uma mentoria profissional?',
+        label: 'Quando as vagas da próxima turma abrirem, você estará preparado para investir em uma mentoria profissional?',
         type: 'radio',
         options: ['Sim', 'Preciso entender as condições', 'Não neste momento'],
       },
@@ -507,8 +494,8 @@ function CohortAvailabilityBar() {
   return (
     <aside className="cohort-availability-bar" aria-label="Status das turmas">
       <p>
-        <strong>PRIMEIRA TURMA FECHADA.</strong>
-        <span>VAGAS ABERTAS PARA A SEGUNDA TURMA.</span>
+        <strong>VAGAS ENCERRADAS.</strong>
+        <span>PRÓXIMA TURMA COM PREVISÃO DE ABERTURA EM {NEXT_COHORT_MONTH}.</span>
       </p>
     </aside>
   );
@@ -520,7 +507,7 @@ function FloatingApplicationCTA({ onApply }) {
   return (
     <motion.aside
       className="application-cta application-cta--floating"
-      aria-label={`Vagas da ${ACTIVE_COHORT.label}`}
+      aria-label="Lista de espera do AI COWORK"
       initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 36 }}
@@ -562,12 +549,12 @@ function ApplicationCTAButton({ onApply, shimmerActive = false }) {
       onClick={onApply}
     >
       <span className="application-cta__action">
-        <span>GARANTIR MINHA VAGA</span>
+        <span>Lista de espera</span>
         <ArrowUpRight className="application-cta__hover-arrow" size={18} strokeWidth={2} aria-hidden="true" />
       </span>
       <span className="application-cta__details" aria-hidden="true">
-        <span>{ACTIVE_COHORT.spots} VAGAS {ACTIVE_COHORT.labelUppercase}</span>
-        <span>ABERTO ATÉ {ACTIVE_COHORT.vacanciesCloseAtUppercase}</span>
+        <span>VAGAS ENCERRADAS</span>
+        <span>PRÓXIMA TURMA: {NEXT_COHORT_MONTH}</span>
       </span>
     </button>
   );
@@ -614,11 +601,11 @@ function Hero({ onApply, ctaShimmerActive }) {
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
         >
           <BrandLogo className="hero__brand" />
-          <div className="hero__facts" aria-label={`Informações da ${ACTIVE_COHORT.label}`}>
+          <div className="hero__facts" aria-label="Informações da próxima turma">
             <Clock3 size={17} aria-hidden="true" />
             <span className="hero__facts-text">
               <span>6 ENCONTROS</span>
-              <span>15 VAGAS EXCLUSIVAS</span>
+              <span>VAGAS ENCERRADAS</span>
             </span>
           </div>
           <h1>Você ainda está fazendo com as mãos o <span className="mesh-text mesh-text--on-dark">trabalho que já poderia fazer com IA.</span></h1>
@@ -961,7 +948,7 @@ function CohortSection() {
             </h2>
           </div>
           <div className="cohort-section__summary">
-            <p>Online, ao vivo e com apenas 15 vagas. Encontros a cada 10 dias, com duas horas de duração, para construir especialistas digitais, fluxos e uma operação pessoal de IA conectada ao seu trabalho real.</p>
+            <p>Online e ao vivo, em uma turma pequena. Encontros a cada 10 dias, com duas horas de duração, para construir especialistas digitais, fluxos e uma operação pessoal de IA conectada ao seu trabalho real. VAGAS ENCERRADAS. A próxima turma deve abrir em {NEXT_COHORT_MONTH}.</p>
             <dl>
               <div>
                 <dt><Video size={18} strokeWidth={1.7} aria-hidden="true" /><span>Onde</span></dt>
@@ -973,17 +960,17 @@ function CohortSection() {
               </div>
               <div>
                 <dt><CalendarDays size={18} strokeWidth={1.7} aria-hidden="true" /><span>Vagas</span></dt>
-                <dd>Até {ACTIVE_COHORT.vacanciesCloseAt}</dd>
+                <dd>ENCERRADAS</dd>
               </div>
             </dl>
           </div>
         </div>
 
-        <div className="cohort-calendar" aria-label="Calendário dos seis encontros">
-          {cohortDates.map((date, index) => (
-            <div className={index === 0 ? 'cohort-date cohort-date--first' : 'cohort-date'} key={`${date.day}-${date.month}`}>
-              <strong>{date.day}</strong>
-              <span>{date.month} · {date.code}</span>
+        <div className="cohort-calendar" aria-label="Sequência dos seis encontros">
+          {cohortSessions.map((number, index) => (
+            <div className={index === 0 ? 'cohort-date cohort-date--first' : 'cohort-date'} key={number}>
+              <strong>{number}</strong>
+              <span>ENCONTRO {Number(number)}</span>
             </div>
           ))}
         </div>
@@ -1005,13 +992,13 @@ function JourneySection() {
         <p>Uma progressão a cada 10 dias: primeiro você aprende a dirigir. Depois, constrói, conecta e consolida sua própria operação.</p>
       </div>
       <div className="container journey-showcase__sessions">
-        {sessions.map(({ code, date, title, body }, index) => (
+        {sessions.map(({ code, stage, title, body }, index) => (
           <article
             className={`journey-session${sessionVideos[index] ? '' : ' journey-session--text-only journey-session--checklist-right'}`}
             key={code}
           >
             <div className="journey-session__copy">
-              <span className="journey-session__meta">{code} · {date}</span>
+              <span className="journey-session__meta">{code} · {stage}</span>
               <h3>{title}</h3>
               {sessionVideos[index] && <div className="journey-session__divider" aria-hidden="true" />}
               <p><CheckCircle2 size={20} strokeWidth={1.7} aria-hidden="true" />{body}</p>
@@ -1063,12 +1050,12 @@ function ApplicationSection() {
     <section className="section section--application" id="candidatura">
       <div className="container application-grid">
         <div>
-          <h2>A <span className="mesh-text mesh-text--on-dark">segunda turma</span> terá {ACTIVE_COHORT.spots} vagas.</h2>
+          <h2><span className="mesh-text mesh-text--on-dark">VAGAS ENCERRADAS.</span> Entre na lista de espera.</h2>
         </div>
         <div className="application-copy prose">
           <p>Escolhi uma turma pequena porque quero acompanhar de perto como cada participante está usando a IA, onde está travando e quais funções fazem mais sentido para o seu trabalho.</p>
-          <p>Preencher o formulário não garante a vaga. Vamos analisar a aderência ao programa, a disponibilidade para participar e a composição da turma.</p>
-          <p>Se o seu perfil fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
+          <p>A próxima turma deve abrir em {NEXT_COHORT_MONTH}. Preencha o formulário para entrar na lista de espera.</p>
+          <p>Quando as vagas abrirem, vamos analisar a aderência ao programa, a disponibilidade para participar e a composição da turma. Se o seu perfil fizer sentido, minha equipe entra em contato, explica o investimento e orienta os próximos passos.</p>
         </div>
       </div>
     </section>
@@ -1079,7 +1066,7 @@ function CohortBenefitsSection({ onApply }) {
   return (
     <section className="section cohort-benefits-section" id="beneficios-da-turma" aria-labelledby="cohort-benefits-title">
       <div className="container cohort-benefits-section__content">
-        <h2 id="cohort-benefits-title">Participe da <span className="mesh-text mesh-text--on-dark">segunda turma</span></h2>
+        <h2 id="cohort-benefits-title"><span className="mesh-text mesh-text--on-dark">VAGAS ENCERRADAS.</span> Próxima turma prevista para {NEXT_COHORT_MONTH}.</h2>
 
         <div className="cohort-benefits-section__visual">
           <PixelDissolveMarquee>
@@ -1122,7 +1109,7 @@ function CohortBenefitsSection({ onApply }) {
           </ul>
 
           <button className="cohort-benefits-card__cta" type="button" onClick={onApply}>
-            <span>QUERO UMA VAGA</span>
+            <span>Lista de espera</span>
             <ArrowUpRight size={20} aria-hidden="true" />
           </button>
         </div>
@@ -1136,7 +1123,7 @@ function FAQSection() {
     <section className="section section--faq" id="faq">
       <div className="container faq-layout">
         <div className="faq-heading">
-          <h2>O que você precisa saber antes de se candidatar.</h2>
+          <h2>O que você precisa saber antes de entrar na lista de espera.</h2>
           <p>Sem promessa mágica, sem dependência de uma ferramenta e sem automação no escuro.</p>
         </div>
         <div className="faq-list">
@@ -1919,7 +1906,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
         className="application-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`Formulário para uma vaga na ${ACTIVE_COHORT.label} do AI COWORK`}
+        aria-label="Formulário da lista de espera do AI COWORK"
         ref={dialogRef}
         tabIndex={-1}
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.985 }}
@@ -1979,7 +1966,7 @@ function ApplicationModal({ onClose, onSubmitted }) {
                   </button>
                 ) : (
                   <button className="form-next" type="submit" disabled={submitting}>
-                    <span>{submitting ? 'Enviando...' : `Solicitar uma das ${ACTIVE_COHORT.spots} vagas`}</span>
+                    <span>{submitting ? 'Enviando...' : 'Lista de espera'}</span>
                     <ArrowRight className="form-next__hover-arrow" size={17} aria-hidden="true" />
                   </button>
                 )}
@@ -2050,12 +2037,12 @@ function ThankYouPage() {
     <main className="thank-you-page">
       <section className="thank-you-page__content" aria-labelledby="thank-you-title">
         <h1 className="mesh-text mesh-text--on-dark" id="thank-you-title">
-          Parabéns por tomar essa decisão extremamente importante na sua carreira pessoal e profissional.
+          Você entrou na lista de espera do AI COWORK.
         </h1>
         <div className="thank-you-page__copy">
-          <p>Minha equipe vai analisar suas respostas e, caso exista aderência com a proposta da segunda turma, entraremos em contato pelo WhatsApp ou pelo e-mail informado.</p>
-          <p>O envio do formulário não garante uma vaga. A entrada depende da aderência ao programa, da disponibilidade para participar e das {ACTIVE_COHORT.spots} vagas da turma.</p>
-          <strong>Fique atento às mensagens nos próximos dias.</strong>
+          <p>Recebemos suas respostas. As vagas estão encerradas e a próxima turma deve abrir em {NEXT_COHORT_MONTH}.</p>
+          <p>Quando houver abertura, minha equipe poderá entrar em contato pelo WhatsApp ou pelo e-mail informado. Estar na lista de espera não garante uma vaga.</p>
+          <strong>Fique atento às mensagens da equipe.</strong>
         </div>
         <a className="thank-you-page__cta" href={WHATSAPP_URL} target="_blank" rel="noreferrer">
           <WhatsAppIcon />
